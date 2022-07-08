@@ -1,0 +1,333 @@
+2022-07-07 19:49:20,641 - train args
+2022-07-07 19:49:20,641 - key: kgmc_game_keybert
+2022-07-07 19:49:20,641 - dataset: game
+2022-07-07 19:49:20,641 - dataset_filename: game
+2022-07-07 19:49:20,641 - keywords: keybert
+2022-07-07 19:49:20,641 - model_type: IGMC
+2022-07-07 19:49:20,641 - hop: 1
+2022-07-07 19:49:20,641 - in_nfeats: 32
+2022-07-07 19:49:20,641 - out_nfeats: 32
+2022-07-07 19:49:20,641 - in_efeats: 32
+2022-07-07 19:49:20,641 - out_efeats: 32
+2022-07-07 19:49:20,641 - num_heads: 4
+2022-07-07 19:49:20,641 - node_features: None
+2022-07-07 19:49:20,641 - parameters: None
+2022-07-07 19:49:20,641 - mpnn_type: None
+2022-07-07 19:49:20,641 - edge_dropout: 0.3
+2022-07-07 19:49:20,641 - latent_dims: None
+2022-07-07 19:49:20,641 - device: 0
+2022-07-07 19:49:20,641 - log_dir: log
+2022-07-07 19:49:20,641 - log_interval: 100
+2022-07-07 19:49:20,641 - train_lrs: [0.001]
+2022-07-07 19:49:20,641 - train_epochs: 20
+2022-07-07 19:49:20,641 - batch_size: 128
+2022-07-07 19:49:20,641 - weight_decay: 0.0
+2022-07-07 19:49:20,641 - lr_decay_step: 5
+2022-07-07 19:49:20,641 - lr_decay_factor: 0.9
+2022-07-07 19:57:37,401 - train args
+2022-07-07 19:57:37,401 - key: kgmc_game_keybert
+2022-07-07 19:57:37,401 - dataset: game
+2022-07-07 19:57:37,401 - dataset_filename: game
+2022-07-07 19:57:37,401 - keywords: keybert
+2022-07-07 19:57:37,401 - model_type: IGMC
+2022-07-07 19:57:37,401 - hop: 1
+2022-07-07 19:57:37,401 - in_nfeats: 32
+2022-07-07 19:57:37,401 - out_nfeats: 32
+2022-07-07 19:57:37,401 - in_efeats: 32
+2022-07-07 19:57:37,401 - out_efeats: 32
+2022-07-07 19:57:37,401 - num_heads: 4
+2022-07-07 19:57:37,401 - node_features: None
+2022-07-07 19:57:37,401 - parameters: None
+2022-07-07 19:57:37,401 - mpnn_type: None
+2022-07-07 19:57:37,401 - edge_dropout: 0.3
+2022-07-07 19:57:37,401 - latent_dims: [32, 32, 32, 32]
+2022-07-07 19:57:37,401 - device: 0
+2022-07-07 19:57:37,401 - log_dir: log
+2022-07-07 19:57:37,401 - log_interval: 100
+2022-07-07 19:57:37,401 - train_lrs: [0.001]
+2022-07-07 19:57:37,401 - train_epochs: 20
+2022-07-07 19:57:37,402 - batch_size: 128
+2022-07-07 19:57:37,402 - weight_decay: 0.0
+2022-07-07 19:57:37,402 - lr_decay_step: 5
+2022-07-07 19:57:37,402 - lr_decay_factor: 0.9
+2022-07-07 19:58:00,856 - train args
+2022-07-07 19:58:00,856 - key: kgmc_game_keybert
+2022-07-07 19:58:00,856 - dataset: game
+2022-07-07 19:58:00,857 - dataset_filename: game
+2022-07-07 19:58:00,857 - keywords: keybert
+2022-07-07 19:58:00,857 - model_type: IGMC
+2022-07-07 19:58:00,857 - hop: 1
+2022-07-07 19:58:00,857 - in_nfeats: 32
+2022-07-07 19:58:00,857 - out_nfeats: 32
+2022-07-07 19:58:00,857 - in_efeats: 32
+2022-07-07 19:58:00,857 - out_efeats: 32
+2022-07-07 19:58:00,857 - num_heads: 4
+2022-07-07 19:58:00,857 - node_features: None
+2022-07-07 19:58:00,857 - parameters: None
+2022-07-07 19:58:00,857 - mpnn_type: None
+2022-07-07 19:58:00,857 - edge_dropout: 0.3
+2022-07-07 19:58:00,857 - latent_dims: [32, 32, 32, 32]
+2022-07-07 19:58:00,857 - device: 0
+2022-07-07 19:58:00,857 - log_dir: log
+2022-07-07 19:58:00,857 - log_interval: 100
+2022-07-07 19:58:00,857 - train_lrs: [0.001]
+2022-07-07 19:58:00,857 - train_epochs: 20
+2022-07-07 19:58:00,857 - batch_size: 128
+2022-07-07 19:58:00,857 - weight_decay: 0.0
+2022-07-07 19:58:00,857 - lr_decay_step: 5
+2022-07-07 19:58:00,857 - lr_decay_factor: 0.9
+2022-07-07 19:58:17,302 - train args
+2022-07-07 19:58:17,302 - key: kgmc_game_keybert
+2022-07-07 19:58:17,302 - dataset: game
+2022-07-07 19:58:17,302 - dataset_filename: game
+2022-07-07 19:58:17,302 - keywords: keybert
+2022-07-07 19:58:17,302 - model_type: IGMC
+2022-07-07 19:58:17,302 - hop: 1
+2022-07-07 19:58:17,302 - in_nfeats: 32
+2022-07-07 19:58:17,302 - out_nfeats: 32
+2022-07-07 19:58:17,302 - in_efeats: 32
+2022-07-07 19:58:17,302 - out_efeats: 32
+2022-07-07 19:58:17,302 - num_heads: 4
+2022-07-07 19:58:17,302 - node_features: None
+2022-07-07 19:58:17,302 - parameters: None
+2022-07-07 19:58:17,302 - mpnn_type: None
+2022-07-07 19:58:17,302 - edge_dropout: 0.3
+2022-07-07 19:58:17,303 - latent_dims: [32, 32, 32, 32]
+2022-07-07 19:58:17,303 - device: 0
+2022-07-07 19:58:17,303 - log_dir: log
+2022-07-07 19:58:17,303 - log_interval: 100
+2022-07-07 19:58:17,303 - train_lrs: [0.001]
+2022-07-07 19:58:17,303 - train_epochs: 20
+2022-07-07 19:58:17,303 - batch_size: 128
+2022-07-07 19:58:17,303 - weight_decay: 0.0
+2022-07-07 19:58:17,303 - lr_decay_step: 5
+2022-07-07 19:58:17,303 - lr_decay_factor: 0.9
+2022-07-07 19:58:21,152 - Loading network finished ...
+
+2022-07-07 19:58:21,152 - Start training ... learning rate : 0.001
+2022-07-07 19:58:34,825 - === Epoch 1, train loss 0.079875, val rmse 0.249994, test rmse 0.238369 ===
+2022-07-07 19:58:34,825 - new best test rmse 0.238369 ===
+2022-07-07 19:58:47,944 - === Epoch 2, train loss 0.068079, val rmse 0.247856, test rmse 0.237084 ===
+2022-07-07 19:58:47,944 - new best test rmse 0.237084 ===
+2022-07-07 19:59:01,153 - === Epoch 3, train loss 0.064114, val rmse 0.247863, test rmse 0.237594 ===
+2022-07-07 19:59:14,311 - === Epoch 4, train loss 0.062000, val rmse 0.247503, test rmse 0.236848 ===
+2022-07-07 19:59:14,311 - new best test rmse 0.236848 ===
+2022-07-07 19:59:27,462 - === Epoch 5, train loss 0.060195, val rmse 0.253637, test rmse 0.243910 ===
+2022-07-07 19:59:40,620 - === Epoch 6, train loss 0.059239, val rmse 0.246740, test rmse 0.235860 ===
+2022-07-07 19:59:40,621 - new best test rmse 0.235860 ===
+2022-07-07 19:59:53,838 - === Epoch 7, train loss 0.058546, val rmse 0.249709, test rmse 0.238808 ===
+2022-07-07 20:00:07,025 - === Epoch 8, train loss 0.058101, val rmse 0.248802, test rmse 0.236061 ===
+2022-07-07 20:00:20,283 - === Epoch 9, train loss 0.057577, val rmse 0.246576, test rmse 0.235184 ===
+2022-07-07 20:00:20,283 - new best test rmse 0.235184 ===
+2022-07-07 20:00:33,922 - === Epoch 10, train loss 0.057249, val rmse 0.247458, test rmse 0.236067 ===
+2022-07-07 20:00:47,877 - === Epoch 11, train loss 0.057149, val rmse 0.246127, test rmse 0.234753 ===
+2022-07-07 20:00:47,877 - new best test rmse 0.234753 ===
+2022-07-07 20:01:02,148 - === Epoch 12, train loss 0.056946, val rmse 0.247085, test rmse 0.234746 ===
+2022-07-07 20:01:02,149 - new best test rmse 0.234746 ===
+2022-07-07 20:01:15,832 - === Epoch 13, train loss 0.056921, val rmse 0.245628, test rmse 0.235179 ===
+2022-07-07 20:01:29,066 - === Epoch 14, train loss 0.056713, val rmse 0.246545, test rmse 0.234138 ===
+2022-07-07 20:01:29,066 - new best test rmse 0.234138 ===
+2022-07-07 20:01:42,308 - === Epoch 15, train loss 0.056979, val rmse 0.245803, test rmse 0.234999 ===
+2022-07-07 20:01:55,546 - === Epoch 16, train loss 0.056839, val rmse 0.246592, test rmse 0.235551 ===
+2022-07-07 20:02:08,827 - === Epoch 17, train loss 0.057013, val rmse 0.248089, test rmse 0.234956 ===
+2022-07-07 20:02:22,097 - === Epoch 18, train loss 0.056683, val rmse 0.250451, test rmse 0.238271 ===
+2022-07-07 20:02:35,372 - === Epoch 19, train loss 0.056956, val rmse 0.246516, test rmse 0.234561 ===
+2022-07-07 20:02:48,788 - === Epoch 20, train loss 0.056621, val rmse 0.247065, test rmse 0.234508 ===
+2022-07-07 20:09:30,756 - train args
+2022-07-07 20:09:30,756 - key: kgmc_game_keybert
+2022-07-07 20:09:30,756 - dataset: game
+2022-07-07 20:09:30,756 - dataset_filename: game
+2022-07-07 20:09:30,756 - keywords: keybert
+2022-07-07 20:09:30,756 - model_type: IGMC
+2022-07-07 20:09:30,756 - hop: 1
+2022-07-07 20:09:30,756 - in_nfeats: 32
+2022-07-07 20:09:30,756 - out_nfeats: 32
+2022-07-07 20:09:30,757 - in_efeats: 32
+2022-07-07 20:09:30,757 - out_efeats: 32
+2022-07-07 20:09:30,757 - num_heads: 4
+2022-07-07 20:09:30,757 - node_features: None
+2022-07-07 20:09:30,757 - parameters: None
+2022-07-07 20:09:30,757 - mpnn_type: None
+2022-07-07 20:09:30,757 - edge_dropout: 0.3
+2022-07-07 20:09:30,757 - latent_dims: [32, 32, 32, 32]
+2022-07-07 20:09:30,757 - device: 0
+2022-07-07 20:09:30,757 - log_dir: log
+2022-07-07 20:09:30,757 - log_interval: 100
+2022-07-07 20:09:30,757 - train_lrs: [0.001]
+2022-07-07 20:09:30,757 - train_epochs: 20
+2022-07-07 20:09:30,757 - batch_size: 128
+2022-07-07 20:09:30,757 - weight_decay: 0.0
+2022-07-07 20:09:30,757 - lr_decay_step: 5
+2022-07-07 20:09:30,757 - lr_decay_factor: 0.9
+2022-07-07 20:09:34,645 - Loading network finished ...
+
+2022-07-07 20:09:34,645 - Start training ... learning rate : 0.001
+2022-07-07 20:09:48,154 - === Epoch 1, train loss 0.080797, val rmse 0.246835, test rmse 0.241123 ===
+2022-07-07 20:09:48,155 - new best test rmse 0.241123 ===
+2022-07-07 20:10:01,186 - === Epoch 2, train loss 0.066277, val rmse 0.248744, test rmse 0.241986 ===
+2022-07-07 20:10:14,228 - === Epoch 3, train loss 0.062394, val rmse 0.248459, test rmse 0.238554 ===
+2022-07-07 20:10:14,228 - new best test rmse 0.238554 ===
+2022-07-07 20:10:27,310 - === Epoch 4, train loss 0.060243, val rmse 0.245001, test rmse 0.233648 ===
+2022-07-07 20:10:27,310 - new best test rmse 0.233648 ===
+2022-07-07 20:10:40,480 - === Epoch 5, train loss 0.058695, val rmse 0.245310, test rmse 0.233829 ===
+2022-07-07 20:10:53,803 - === Epoch 6, train loss 0.056742, val rmse 0.243187, test rmse 0.231357 ===
+2022-07-07 20:10:53,803 - new best test rmse 0.231357 ===
+2022-07-07 20:11:07,091 - === Epoch 7, train loss 0.056308, val rmse 0.243687, test rmse 0.232788 ===
+2022-07-07 20:11:20,632 - === Epoch 8, train loss 0.056087, val rmse 0.244762, test rmse 0.231603 ===
+2022-07-07 20:11:34,253 - === Epoch 9, train loss 0.055278, val rmse 0.243309, test rmse 0.231474 ===
+2022-07-07 20:11:47,806 - === Epoch 10, train loss 0.055152, val rmse 0.246132, test rmse 0.233462 ===
+2022-07-07 20:12:01,553 - === Epoch 11, train loss 0.055039, val rmse 0.243214, test rmse 0.230816 ===
+2022-07-07 20:12:01,553 - new best test rmse 0.230816 ===
+2022-07-07 20:26:57,024 - train args
+2022-07-07 20:26:57,024 - key: kgmc_game_keybert
+2022-07-07 20:26:57,024 - dataset: game
+2022-07-07 20:26:57,024 - dataset_filename: game
+2022-07-07 20:26:57,024 - keywords: keybert
+2022-07-07 20:26:57,024 - model_type: IGMC
+2022-07-07 20:26:57,024 - hop: 1
+2022-07-07 20:26:57,024 - in_nfeats: 32
+2022-07-07 20:26:57,024 - out_nfeats: 32
+2022-07-07 20:26:57,024 - in_efeats: 32
+2022-07-07 20:26:57,024 - out_efeats: 32
+2022-07-07 20:26:57,024 - num_heads: 4
+2022-07-07 20:26:57,024 - node_features: None
+2022-07-07 20:26:57,024 - parameters: None
+2022-07-07 20:26:57,024 - num_relations: 6
+2022-07-07 20:26:57,024 - edge_dropout: 0.3
+2022-07-07 20:26:57,024 - latent_dims: [32, 32, 32, 32]
+2022-07-07 20:26:57,024 - device: 0
+2022-07-07 20:26:57,024 - log_dir: log
+2022-07-07 20:26:57,024 - log_interval: 100
+2022-07-07 20:26:57,024 - train_lrs: [0.001, 0.002, 0.0005]
+2022-07-07 20:26:57,024 - train_epochs: 20
+2022-07-07 20:26:57,024 - batch_size: 128
+2022-07-07 20:26:57,024 - weight_decay: 0.0
+2022-07-07 20:26:57,024 - lr_decay_step: 5
+2022-07-07 20:26:57,025 - lr_decay_factor: 0.9
+2022-07-07 20:26:58,495 - Loading network finished ...
+
+2022-07-07 20:26:58,496 - Start training ... learning rate : 0.001
+2022-07-07 20:48:16,887 - === Epoch 1, train loss 0.090227, val rmse 0.249818, test rmse 0.249762 ===
+2022-07-07 20:48:16,888 - new best test rmse 0.249762 ===
+2022-07-07 21:09:42,338 - === Epoch 2, train loss 0.069820, val rmse 0.244881, test rmse 0.243104 ===
+2022-07-07 21:09:42,338 - new best test rmse 0.243104 ===
+2022-07-07 21:30:52,296 - === Epoch 3, train loss 0.065163, val rmse 0.244225, test rmse 0.235543 ===
+2022-07-07 21:30:52,296 - new best test rmse 0.235543 ===
+2022-07-07 21:51:53,847 - === Epoch 4, train loss 0.062175, val rmse 0.258982, test rmse 0.251938 ===
+2022-07-07 22:13:02,804 - === Epoch 5, train loss 0.059998, val rmse 0.245049, test rmse 0.236870 ===
+2022-07-07 22:34:15,270 - === Epoch 6, train loss 0.058384, val rmse 0.243460, test rmse 0.232790 ===
+2022-07-07 22:34:15,270 - new best test rmse 0.232790 ===
+2022-07-07 22:55:20,432 - === Epoch 7, train loss 0.056989, val rmse 0.243179, test rmse 0.233215 ===
+2022-07-07 23:16:34,486 - === Epoch 8, train loss 0.056356, val rmse 0.244020, test rmse 0.232749 ===
+2022-07-07 23:16:34,486 - new best test rmse 0.232749 ===
+2022-07-07 23:37:51,690 - === Epoch 9, train loss 0.055695, val rmse 0.242179, test rmse 0.233082 ===
+2022-07-07 23:59:01,852 - === Epoch 10, train loss 0.055065, val rmse 0.242472, test rmse 0.233609 ===
+2022-07-08 00:20:13,627 - === Epoch 11, train loss 0.054785, val rmse 0.243180, test rmse 0.233916 ===
+2022-07-08 00:41:48,349 - === Epoch 12, train loss 0.054352, val rmse 0.243788, test rmse 0.233021 ===
+2022-07-08 01:03:04,615 - === Epoch 13, train loss 0.054388, val rmse 0.244037, test rmse 0.232341 ===
+2022-07-08 01:03:04,616 - new best test rmse 0.232341 ===
+2022-07-08 01:24:14,392 - === Epoch 14, train loss 0.054482, val rmse 0.244854, test rmse 0.233265 ===
+2022-07-08 01:45:21,024 - === Epoch 15, train loss 0.053992, val rmse 0.244473, test rmse 0.233049 ===
+2022-07-08 02:06:26,958 - === Epoch 16, train loss 0.054273, val rmse 0.244946, test rmse 0.233236 ===
+2022-07-08 02:21:43,175 - train args
+2022-07-08 02:21:43,175 - key: kgmc_game_keybert
+2022-07-08 02:21:43,175 - dataset: game
+2022-07-08 02:21:43,175 - dataset_filename: game
+2022-07-08 02:21:43,175 - keywords: keybert
+2022-07-08 02:21:43,175 - model_type: IGMC
+2022-07-08 02:21:43,175 - hop: 1
+2022-07-08 02:21:43,175 - in_nfeats: 32
+2022-07-08 02:21:43,175 - out_nfeats: 32
+2022-07-08 02:21:43,175 - in_efeats: 32
+2022-07-08 02:21:43,175 - out_efeats: 32
+2022-07-08 02:21:43,175 - num_heads: 4
+2022-07-08 02:21:43,175 - node_features: None
+2022-07-08 02:21:43,175 - parameters: None
+2022-07-08 02:21:43,175 - num_relations: 6
+2022-07-08 02:21:43,175 - edge_dropout: 0.3
+2022-07-08 02:21:43,175 - latent_dims: [32, 32, 32, 32]
+2022-07-08 02:21:43,175 - device: 0
+2022-07-08 02:21:43,175 - log_dir: log
+2022-07-08 02:21:43,175 - log_interval: 100
+2022-07-08 02:21:43,175 - train_lrs: [0.001, 0.002, 0.0005]
+2022-07-08 02:21:43,175 - train_epochs: 20
+2022-07-08 02:21:43,175 - batch_size: 128
+2022-07-08 02:21:43,175 - weight_decay: 0.0
+2022-07-08 02:21:43,175 - lr_decay_step: 5
+2022-07-08 02:21:43,175 - lr_decay_factor: 0.9
+2022-07-08 02:21:47,059 - Loading network finished ...
+
+2022-07-08 02:21:47,059 - Start training ... learning rate : 0.001
+2022-07-08 02:42:45,917 - === Epoch 1, train loss 0.081655, val rmse 0.246058, test rmse 0.245173 ===
+2022-07-08 02:42:45,917 - new best test rmse 0.245173 ===
+2022-07-08 03:03:37,897 - === Epoch 2, train loss 0.066665, val rmse 0.244635, test rmse 0.239441 ===
+2022-07-08 03:03:37,897 - new best test rmse 0.239441 ===
+2022-07-08 03:15:42,721 - train args
+2022-07-08 03:15:42,721 - key: kgmc_game_keybert
+2022-07-08 03:15:42,721 - dataset: game
+2022-07-08 03:15:42,721 - dataset_filename: game
+2022-07-08 03:15:42,721 - keywords: keybert
+2022-07-08 03:15:42,721 - model_type: IGMC
+2022-07-08 03:15:42,721 - hop: 1
+2022-07-08 03:15:42,721 - in_nfeats: 32
+2022-07-08 03:15:42,721 - out_nfeats: 32
+2022-07-08 03:15:42,721 - in_efeats: 32
+2022-07-08 03:15:42,721 - out_efeats: 32
+2022-07-08 03:15:42,721 - num_heads: 4
+2022-07-08 03:15:42,721 - node_features: None
+2022-07-08 03:15:42,721 - parameters: None
+2022-07-08 03:15:42,721 - num_relations: 6
+2022-07-08 03:15:42,721 - edge_dropout: 0.3
+2022-07-08 03:15:42,721 - latent_dims: [32, 32, 32, 32]
+2022-07-08 03:15:42,721 - device: 0
+2022-07-08 03:15:42,721 - log_dir: log
+2022-07-08 03:15:42,721 - log_interval: 100
+2022-07-08 03:15:42,721 - train_lrs: [0.001, 0.001, 0.002, 0.0005]
+2022-07-08 03:15:42,721 - train_epochs: 20
+2022-07-08 03:15:42,721 - batch_size: 128
+2022-07-08 03:15:42,721 - weight_decay: 0.0
+2022-07-08 03:15:42,721 - lr_decay_step: 5
+2022-07-08 03:15:42,721 - lr_decay_factor: 0.9
+2022-07-08 03:15:46,624 - Loading network finished ...
+
+2022-07-08 03:15:46,624 - Start training ... learning rate : 0.001
+2022-07-08 03:38:39,106 - === Epoch 1, train loss 0.086346, val rmse 0.246837, test rmse 0.243847 ===
+2022-07-08 03:38:39,107 - new best test rmse 0.243847 ===
+2022-07-08 04:01:19,419 - === Epoch 2, train loss 0.067759, val rmse 0.253675, test rmse 0.246480 ===
+2022-07-08 04:24:26,577 - === Epoch 3, train loss 0.063988, val rmse 0.245397, test rmse 0.239700 ===
+2022-07-08 04:24:26,577 - new best test rmse 0.239700 ===
+2022-07-08 04:47:26,392 - === Epoch 4, train loss 0.061073, val rmse 0.243493, test rmse 0.236273 ===
+2022-07-08 04:47:26,392 - new best test rmse 0.236273 ===
+2022-07-08 05:10:10,422 - === Epoch 5, train loss 0.059020, val rmse 0.243810, test rmse 0.236038 ===
+2022-07-08 05:10:10,422 - new best test rmse 0.236038 ===
+2022-07-08 05:33:01,896 - === Epoch 6, train loss 0.058230, val rmse 0.249471, test rmse 0.239226 ===
+2022-07-08 05:55:42,010 - === Epoch 7, train loss 0.056971, val rmse 0.243909, test rmse 0.235457 ===
+2022-07-08 05:55:42,010 - new best test rmse 0.235457 ===
+2022-07-08 06:18:32,688 - === Epoch 8, train loss 0.055727, val rmse 0.243081, test rmse 0.234009 ===
+2022-07-08 06:18:32,688 - new best test rmse 0.234009 ===
+2022-07-08 06:41:14,884 - === Epoch 9, train loss 0.055627, val rmse 0.245817, test rmse 0.235753 ===
+2022-07-08 07:04:05,022 - === Epoch 10, train loss 0.055327, val rmse 0.243979, test rmse 0.233556 ===
+2022-07-08 07:04:05,022 - new best test rmse 0.233556 ===
+2022-07-08 07:26:48,628 - === Epoch 11, train loss 0.054903, val rmse 0.242583, test rmse 0.232691 ===
+2022-07-08 07:26:48,628 - new best test rmse 0.232691 ===
+2022-07-08 07:49:35,708 - === Epoch 12, train loss 0.054768, val rmse 0.242969, test rmse 0.232550 ===
+2022-07-08 07:49:35,708 - new best test rmse 0.232550 ===
+2022-07-08 08:12:59,702 - === Epoch 13, train loss 0.054546, val rmse 0.244486, test rmse 0.233230 ===
+2022-07-08 08:35:51,486 - === Epoch 14, train loss 0.054616, val rmse 0.244435, test rmse 0.234496 ===
+2022-07-08 08:58:48,272 - === Epoch 15, train loss 0.054247, val rmse 0.246819, test rmse 0.236120 ===
+2022-07-08 09:21:37,141 - === Epoch 16, train loss 0.054043, val rmse 0.246416, test rmse 0.234773 ===
+2022-07-08 09:44:38,342 - === Epoch 17, train loss 0.054046, val rmse 0.243534, test rmse 0.232060 ===
+2022-07-08 09:44:38,342 - new best test rmse 0.232060 ===
+2022-07-08 10:07:45,538 - === Epoch 18, train loss 0.054121, val rmse 0.242998, test rmse 0.232200 ===
+2022-07-08 10:30:48,777 - === Epoch 19, train loss 0.053792, val rmse 0.244138, test rmse 0.232095 ===
+2022-07-08 10:53:43,571 - === Epoch 20, train loss 0.054023, val rmse 0.242055, test rmse 0.230154 ===
+2022-07-08 10:53:43,571 - new best test rmse 0.230154 ===
+2022-07-08 10:53:43,573 - Training ends. The best testing rmse is 0.230154 at epoch 20
+2022-07-08 10:53:45,213 - Loading network finished ...
+
+2022-07-08 10:53:45,213 - Start training ... learning rate : 0.001
+2022-07-08 11:16:38,015 - === Epoch 1, train loss 0.087425, val rmse 0.249239, test rmse 0.251850 ===
+2022-07-08 11:16:38,015 - new best test rmse 0.251850 ===
+2022-07-08 11:39:45,410 - === Epoch 2, train loss 0.069212, val rmse 0.255567, test rmse 0.255444 ===
+2022-07-08 12:02:33,239 - === Epoch 3, train loss 0.064483, val rmse 0.243600, test rmse 0.237829 ===
+2022-07-08 12:02:33,239 - new best test rmse 0.237829 ===

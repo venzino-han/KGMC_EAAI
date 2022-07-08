@@ -1,0 +1,3 @@
+files:
+  # - ./train_configs/igmc_game.yaml
+  - ./train_configs/kgmc_game_keybert.yaml
