@@ -48,6 +48,7 @@ def get_args_from_yaml(yaml_path):
             'dataset': data_cfg['name'],
             'dataset_filename': data_cfg['file_name'],
             'keywords': data_cfg.get('keywords'),
+            'keyword_edge_k': data_cfg.get('keyword_edge_k'),
             
             # model configs
             'model_type': model_cfg['type'],
@@ -60,11 +61,7 @@ def get_args_from_yaml(yaml_path):
             'node_features': model_cfg.get('node_features'),
             'parameters': model_cfg.get('parameters'),
             'num_relations': model_cfg.get('num_relations', 5),
-            # 'mpnn_type': model_cfg.get('mpnn_type'),
             'edge_dropout': model_cfg['edge_dropout'],
-            # 'review':model_cfg.get('review'),
-            # 'rating':model_cfg.get('rating'),
-            # 'timestamp':model_cfg.get('timestamp'),
 
             'latent_dims': model_cfg.get('latent_dims'), # baseline model
 

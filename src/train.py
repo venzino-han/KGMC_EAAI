@@ -1,5 +1,6 @@
 import math, copy
 
+import dgl
 import pandas as pd
 import numpy as np
 
@@ -11,9 +12,7 @@ import time
 from easydict import EasyDict
 
 from utils import get_logger, get_args_from_yaml, evaluate
-
-from dataloader import get_dataloader
-
+from dataloader import get_graphs, get_dataloader
 from models.igmc import IGMC
 
 def train_epoch(model, loss_fn, optimizer, loader, device, logger, log_interval):
@@ -52,26 +51,46 @@ def train_epoch(model, loss_fn, optimizer, loader, device, logger, log_interval)
     return epoch_loss / len(loader.dataset)
 
 
-
+NUM_WORKER = 8
 def train(args:EasyDict, logger):
-    # th.manual_seed(0)
-    # np.random.seed(0)
-    # dgl.random.seed(0)
+    th.manual_seed(0)
+    np.random.seed(0)
+    dgl.random.seed(0)
 
     data_path = f'data/{args.dataset}/{args.dataset_filename}'
     if args.keywords is not None:
         item_kw_df = pd.read_csv(f'data/{args.dataset}/{args.keywords}_item_keywords.csv', index_col=0) 
         user_kw_df = pd.read_csv(f'data/{args.dataset}/{args.keywords}_user_keywords.csv', index_col=0)
-
+        with open(f'{data_path}_cooc_matrix.npy', 'rb') as f:
+            keyword_edge_matrix = np.load(f)
+        
     else:
         item_kw_df = None
         user_kw_df = None
+        keyword_edge_matrix = None
 
-    train_loader, valid_loader, test_loader =  get_dataloader(data_path, batch_size=args.batch_size, 
-                                                              user_kw_df=user_kw_df,
-                                                              item_kw_df=item_kw_df,
-                                                            )
+    train_graph, valid_graph, test_graph = get_graphs(data_path=data_path, item_kw_df=item_kw_df, user_kw_df=user_kw_df)
     
+    keyword_edge_k = args.keyword_edge_k
+    train_loader = get_dataloader(train_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 
+                                 keyword_edge_k=keyword_edge_k,
+                                 batch_size=args.batch_size, 
+                                 num_workers=NUM_WORKER, 
+                                 shuffle=True, 
+                                 )
+    valid_loader = get_dataloader(valid_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 
+                                 keyword_edge_k=keyword_edge_k,
+                                 batch_size=args.batch_size, 
+                                 num_workers=NUM_WORKER, 
+                                 shuffle=False,
+                                 )
+    test_loader = get_dataloader(test_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 
+                                 batch_size=args.batch_size, 
+                                 keyword_edge_k=keyword_edge_k,
+                                 num_workers=NUM_WORKER, 
+                                 shuffle=False,
+                                 )
+
     ### prepare data and set model
     if args.model_type == 'IGMC':
         in_feats = (args.hop+1)*2 
@@ -101,7 +120,6 @@ def train(args:EasyDict, logger):
     
         train_loss = train_epoch(model, loss_fn, optimizer, train_loader, 
                                  args.device, logger, args.log_interval)
-        # val_rmse = evaluate(model, valid_loader, args.device)
         val_rmse = evaluate(model, valid_loader, args.device)
         test_rmse = evaluate(model, test_loader, args.device)
         eval_info = {
@@ -130,28 +148,27 @@ def train(args:EasyDict, logger):
 import yaml
 
 def main():
-    while 1:
-        with open('./train_configs/train_list.yaml') as f:
-            files = yaml.load(f, Loader=yaml.FullLoader)
-        file_list = files['files']
-        for f in file_list:
-            args = get_args_from_yaml(f)
-            logger = get_logger(name=args.key, path=f"{args.log_dir}/{args.key}.log")
-            logger.info('train args')
-            for k,v in args.items():
-                logger.info(f'{k}: {v}')
+    with open('./train_configs/train_list.yaml') as f:
+        files = yaml.load(f, Loader=yaml.FullLoader)
+    file_list = files['files']
+    for f in file_list:
+        
+        args = get_args_from_yaml(f)
+        logger = get_logger(name=args.key, path=f"{args.log_dir}/{args.key}.log")
+        logger.info('train args')
+        for k,v in args.items():
+            logger.info(f'{k}: {v}')
 
-            final_best_rmse = 100
-            best_lr = None
-            for lr in args.train_lrs:
-                sub_args = args
-                sub_args['train_lr'] = lr
-                best_rmse = train(sub_args, logger=logger)
-
-                if best_rmse < final_best_rmse:
-                    final_best_rmse = best_rmse
-                    best_lr = lr
-            logger.info(f"**********The final best testing RMSE is {final_best_rmse:.6f} at lr {best_lr}********")
+        final_best_rmse = 100
+        best_lr = None
+        best_rmses = []
+        for lr in args.train_lrs:
+            sub_args = args
+            sub_args['train_lr'] = lr
+            best_rmse = train(sub_args, logger=logger)
+            best_rmses.append(best_rmse)
+        logger.info(f"**********The final best testing RMSE is {min(best_rmses):.6f} at lr {best_lr}********")
+        logger.info(f"**********The mean testing RMSE is {np.mean(best_rmses):.6f}, {np.std(best_rmses)} ********")
 
 if __name__ == '__main__':
     main()

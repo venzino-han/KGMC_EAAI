@@ -4,7 +4,7 @@ import numpy as np
 import dgl
 
 from itertools import combinations
-from user_item_graph import UserItemGraph
+from user_item_graph import UserItemGraph, get_keyword_co_occurrence_matrix
 
 
 #######################
@@ -90,12 +90,12 @@ def subgraph_extraction_labeling(u_node_idx, i_node_idx, graph,
 
     # timestamp normalization
     # compute ts diff from target edge & min-max normalization
-    n = subgraph.edata['ts'].shape[0]
-    timestamps = subgraph.edata['ts'][:n//2]
-    standard_ts = timestamps[target_edges.to(th.long)[0]]
-    timestamps = th.abs(timestamps - standard_ts.item())
-    timestamps = 1 - (timestamps - th.min(timestamps)) / (th.max(timestamps)-th.min(timestamps) + 1e-5)
-    subgraph.edata['ts'] = th.cat([timestamps, timestamps], dim=0) + 1e-5
+    # n = subgraph.edata['ts'].shape[0]
+    # timestamps = subgraph.edata['ts'][:n//2]
+    # standard_ts = timestamps[target_edges.to(th.long)[0]]
+    # timestamps = th.abs(timestamps - standard_ts.item())
+    # timestamps = 1 - (timestamps - th.min(timestamps)) / (th.max(timestamps)-th.min(timestamps) + 1e-5)
+    # subgraph.edata['ts'] = th.cat([timestamps, timestamps], dim=0) + 1e-5
 
     return subgraph    
 
@@ -106,17 +106,16 @@ def subgraph_extraction_labeling(u_node_idx, i_node_idx, graph,
 #######################
 
 class UserItemDataset(th.utils.data.Dataset):
-    def __init__(self, user_itme_graph: UserItemGraph,
-                 keyword_edge=False, keyword_edge_k=10,  
+    def __init__(self, user_item_graph: UserItemGraph,
+                 keyword_edge_k=12, keyword_edge_cooc_matrix=None, 
                  hop=1, sample_ratio=1.0, max_nodes_per_hop=100):
 
-        self.g_labels = user_itme_graph.labels
-        self.graph = user_itme_graph.graph
-        self.pairs = user_itme_graph.user_item_pairs
-        self.nid_arr_dict = user_itme_graph.nid_arr_dict
+        self.g_labels = user_item_graph.labels
+        self.graph = user_item_graph.graph
+        self.pairs = user_item_graph.user_item_pairs
 
-        self.keyword_edge = keyword_edge
         self.keyword_edge_k = keyword_edge_k
+        self.keyword_edge_cooc_matrix = keyword_edge_cooc_matrix
 
         self.hop = hop
         self.sample_ratio = sample_ratio
@@ -134,7 +133,7 @@ class UserItemDataset(th.utils.data.Dataset):
             subgraph.edata['feature']= masked_feat
         
         g_label = self.g_labels[idx]
-        if self.keyword_edge==True:
+        if self.keyword_edge_cooc_matrix is not None:
             subgraph = self._add_keyword_edge(subgraph)
         return subgraph, g_label
 
@@ -144,17 +143,15 @@ class UserItemDataset(th.utils.data.Dataset):
             oid_nid_dict[original_id] = new_id
 
         nids = subg.ndata['node_id'].tolist()
-        pairs = list(combinations(nids, 2))
-        arr_dict = self.nid_arr_dict
         edata={
             'etype':th.tensor([0], dtype=th.int32),
             'edge_mask':th.tensor([1], dtype=th.int32),
-            'ts':th.tensor([1.]),
+            # 'ts':th.tensor([1.]),
             'label':th.tensor([1.]),
         }
+        pairs = list(combinations(nids, 2))
         for i, j in pairs:
-            i_a , j_a = np.array(arr_dict[i]), np.array(arr_dict[j])    
-            if np.sum(i_a*j_a) > self.keyword_edge_k:
+            if self.keyword_edge_cooc_matrix[i,j] > self.keyword_edge_k:
                 subg.add_edges(oid_nid_dict[i], oid_nid_dict[j], data=edata)
                 subg.add_edges(oid_nid_dict[j], oid_nid_dict[i], data=edata)
         return subg
@@ -167,10 +164,8 @@ def collate_data(data):
     g_label = th.stack(label_list)
     return g, g_label
 
-NUM_WORKERS = 8
 
-def get_dataloader(data_path, batch_size=32, item_kw_df=None, user_kw_df=None ):
-
+def get_graphs(data_path, item_kw_df=None, user_kw_df=None):
     train_df = pd.read_csv(f'{data_path}_train.csv')
     valid_df = pd.read_csv(f'{data_path}_valid.csv')
     test_df = pd.read_csv(f'{data_path}_test.csv')
@@ -178,10 +173,6 @@ def get_dataloader(data_path, batch_size=32, item_kw_df=None, user_kw_df=None ):
     #accumulate
     valid_df = pd.concat([train_df, valid_df])
     test_df = pd.concat([valid_df, test_df])
-
-    keyword_edge=False
-    if item_kw_df is not None and user_kw_df is not None:
-        keyword_edge=True
 
     train_graph = UserItemGraph(label_col='rating',
                                 user_col='user_id',
@@ -192,13 +183,6 @@ def get_dataloader(data_path, batch_size=32, item_kw_df=None, user_kw_df=None ):
                                 df=train_df,
                                 edge_idx_range=(0, len(train_df)))
 
-    train_dataset = UserItemDataset(user_itme_graph=train_graph, keyword_edge=keyword_edge,
-                                    hop=1, sample_ratio=1.0, max_nodes_per_hop=100)
-
-    train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, 
-                                            num_workers=NUM_WORKERS, collate_fn=collate_data, pin_memory=True)
-
-
     valid_graph = UserItemGraph(label_col='rating',
                                 user_col='user_id',
                                 item_col='item_id',
@@ -207,13 +191,6 @@ def get_dataloader(data_path, batch_size=32, item_kw_df=None, user_kw_df=None ):
                                 user_kw_df=user_kw_df,
                                 df=valid_df,
                                 edge_idx_range=(len(train_df), len(valid_df)))
-
-    valid_dataset = UserItemDataset(user_itme_graph=valid_graph, keyword_edge=keyword_edge,
-                                    hop=1, sample_ratio=1.0, max_nodes_per_hop=100)
-
-    valid_loader = th.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, 
-                                            num_workers=NUM_WORKERS, collate_fn=collate_data, pin_memory=True)
-
 
     test_graph = UserItemGraph(label_col='rating',
                                user_col='user_id',
@@ -224,10 +201,32 @@ def get_dataloader(data_path, batch_size=32, item_kw_df=None, user_kw_df=None ):
                                df=test_df,
                                edge_idx_range=(len(valid_df), len(test_df)))
 
-    test_dataset = UserItemDataset(user_itme_graph=test_graph, keyword_edge=keyword_edge,
+    return train_graph, valid_graph, test_graph
+
+
+def get_dataloader(graph, keyword_edge_cooc_matrix, keyword_edge_k=12, batch_size=32, num_workers=8 ,shuffle=True):
+
+    graph_dataset = UserItemDataset(user_item_graph=graph, 
+                                    keyword_edge_cooc_matrix=keyword_edge_cooc_matrix,
+                                    keyword_edge_k=keyword_edge_k, 
                                     hop=1, sample_ratio=1.0, max_nodes_per_hop=100)
 
-    test_loader = th.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, 
-                                            num_workers=NUM_WORKERS, collate_fn=collate_data, pin_memory=True)
+    graph_loader = th.utils.data.DataLoader(graph_dataset, batch_size=batch_size, shuffle=shuffle, 
+                                            num_workers=num_workers, collate_fn=collate_data, pin_memory=True)
 
-    return train_loader, valid_loader, test_loader
+    return graph_loader
+
+
+if __name__=='__main__':
+
+    data_name = 'game'
+    data_path=f'data/{data_name}/{data_name}'
+    item_kw_df= pd.read_csv(f'data/{data_name}/keybert_train_item_keywords.csv', index_col=0) 
+    user_kw_df= pd.read_csv(f'data/{data_name}/keybert_train_user_keywords.csv', index_col=0)
+    train_graph, valid_graph, test_graph = get_graphs(data_path=data_path, item_kw_df=item_kw_df, user_kw_df=user_kw_df)
+
+    # cooc_matrix = get_keyword_co_occurrence_matrix(test_graph)
+    # with open(f'{data_path}_cooc_matrix.npy', 'wb') as f:
+    #     np.save(f, cooc_matrix)
+
+    train_loader = get_dataloader(train_graph)

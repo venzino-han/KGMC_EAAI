@@ -1,7 +1,4 @@
 """build graph with edge features"""
-
-import scipy.sparse as sp
-
 import numpy as np
 import pandas as pd
 import torch as th
@@ -122,3 +119,17 @@ class UserItemGraph(object):
             nid_arr_dict[i] = self._get_keyword_vector(d)
         
         return nid_arr_dict
+
+from itertools import combinations
+from collections import  defaultdict
+from tqdm import tqdm
+
+def get_keyword_co_occurrence_matrix(user_item_graph:UserItemGraph):
+    g = user_item_graph.graph
+    nid_arr_dict = user_item_graph.nid_arr_dict
+
+    n = len(g.ndata['node_id'])
+    keyword_matrix = np.array([ nid_arr_dict[i] for i in range(n) ])
+    keyword_co_occurrence_matrix = np.matmul(keyword_matrix, keyword_matrix.T)
+    
+    return  keyword_co_occurrence_matrix

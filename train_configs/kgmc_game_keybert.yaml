@@ -19,7 +19,8 @@ model:
 dataset:
   name: game
   file_name: game
-  keywords: keybert
+  keywords: keybert_train
+  keyword_edge_k: 12
 
 train:
   device: 0
@@ -28,8 +29,11 @@ train:
   learning_rates:
     - 1e-3
     - 1e-3
-    - 2e-3
-    - 5e-4
+    - 1e-3
+    - 1e-3
+    - 1e-3
+    # - 2e-3
+    # - 5e-4
   weight_decay: 0.0
   lr_decay_step: 5
   lr_decay_factor: 0.90
