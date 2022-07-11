@@ -1,5 +1,7 @@
 files:
-  - ./train_configs/igmc_game.yaml
+  # - ./train_configs/igmc_game.yaml
+  - ./train_configs/kgmc_game_keybert_train.yaml
   - ./train_configs/kgmc_game_keybert.yaml
-  - ./train_configs/igmc_music.yaml
+  # - ./train_configs/igmc_music.yaml
   - ./train_configs/kgmc_music_keybert.yaml
+  - ./train_configs/kgmc_music_keybert_train.yaml

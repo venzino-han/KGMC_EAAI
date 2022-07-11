@@ -4,8 +4,7 @@ import numpy as np
 import dgl
 
 from itertools import combinations
-from user_item_graph import UserItemGraph, get_keyword_co_occurrence_matrix
-
+from user_item_graph import UserItemGraph
 
 #######################
 # Subgraph Extraction 
@@ -113,6 +112,7 @@ class UserItemDataset(th.utils.data.Dataset):
         self.g_labels = user_item_graph.labels
         self.graph = user_item_graph.graph
         self.pairs = user_item_graph.user_item_pairs
+        self.pairs_set = set([ (p[0].item(), p[1].item()) for p in self.pairs])
 
         self.keyword_edge_k = keyword_edge_k
         self.keyword_edge_cooc_matrix = keyword_edge_cooc_matrix
@@ -151,9 +151,14 @@ class UserItemDataset(th.utils.data.Dataset):
         }
         pairs = list(combinations(nids, 2))
         for i, j in pairs:
-            if self.keyword_edge_cooc_matrix[i,j] > self.keyword_edge_k:
+            # edge_not_exist = ((i,j) not in self.pairs_set and (j,i) not in self.pairs_set)
+            if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
+                continue
+            edge_not_exist = True
+            if self.keyword_edge_cooc_matrix[i,j] > self.keyword_edge_k and edge_not_exist:
                 subg.add_edges(oid_nid_dict[i], oid_nid_dict[j], data=edata)
                 subg.add_edges(oid_nid_dict[j], oid_nid_dict[i], data=edata)
+                
         return subg
 
 
@@ -178,8 +183,6 @@ def get_graphs(data_path, item_kw_df=None, user_kw_df=None):
                                 user_col='user_id',
                                 item_col='item_id',
                                 text_col='text_clean',
-                                item_kw_df=item_kw_df,
-                                user_kw_df=user_kw_df,
                                 df=train_df,
                                 edge_idx_range=(0, len(train_df)))
 
@@ -187,8 +190,6 @@ def get_graphs(data_path, item_kw_df=None, user_kw_df=None):
                                 user_col='user_id',
                                 item_col='item_id',
                                 text_col='text_clean',
-                                item_kw_df=item_kw_df,
-                                user_kw_df=user_kw_df,
                                 df=valid_df,
                                 edge_idx_range=(len(train_df), len(valid_df)))
 
@@ -196,8 +197,6 @@ def get_graphs(data_path, item_kw_df=None, user_kw_df=None):
                                user_col='user_id',
                                item_col='item_id',
                                text_col='text_clean',
-                               item_kw_df=item_kw_df,
-                               user_kw_df=user_kw_df,
                                df=test_df,
                                edge_idx_range=(len(valid_df), len(test_df)))
 
@@ -221,12 +220,6 @@ if __name__=='__main__':
 
     data_name = 'game'
     data_path=f'data/{data_name}/{data_name}'
-    item_kw_df= pd.read_csv(f'data/{data_name}/keybert_train_item_keywords.csv', index_col=0) 
-    user_kw_df= pd.read_csv(f'data/{data_name}/keybert_train_user_keywords.csv', index_col=0)
-    train_graph, valid_graph, test_graph = get_graphs(data_path=data_path, item_kw_df=item_kw_df, user_kw_df=user_kw_df)
+    train_graph, valid_graph, test_graph = get_graphs(data_path=data_path)
 
-    # cooc_matrix = get_keyword_co_occurrence_matrix(test_graph)
-    # with open(f'{data_path}_cooc_matrix.npy', 'wb') as f:
-    #     np.save(f, cooc_matrix)
-
-    train_loader = get_dataloader(train_graph)
+    # train_loader = get_dataloader(train_graph)

@@ -59,17 +59,12 @@ def train(args:EasyDict, logger):
 
     data_path = f'data/{args.dataset}/{args.dataset_filename}'
     if args.keywords is not None:
-        item_kw_df = pd.read_csv(f'data/{args.dataset}/{args.keywords}_item_keywords.csv', index_col=0) 
-        user_kw_df = pd.read_csv(f'data/{args.dataset}/{args.keywords}_user_keywords.csv', index_col=0)
-        with open(f'{data_path}_cooc_matrix.npy', 'rb') as f:
+        with open(f'data/{args.dataset}/{args.keywords}', 'rb') as f:
             keyword_edge_matrix = np.load(f)
-        
     else:
-        item_kw_df = None
-        user_kw_df = None
         keyword_edge_matrix = None
 
-    train_graph, valid_graph, test_graph = get_graphs(data_path=data_path, item_kw_df=item_kw_df, user_kw_df=user_kw_df)
+    train_graph, valid_graph, test_graph = get_graphs(data_path=data_path)
     
     keyword_edge_k = args.keyword_edge_k
     train_loader = get_dataloader(train_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 

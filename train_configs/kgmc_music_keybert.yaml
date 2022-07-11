@@ -19,8 +19,8 @@ model:
 dataset:
   name: music
   file_name: music
-  keywords: keybert_train
-  keyword_edge_k: 12
+  keywords: keybert_valid
+  keyword_edge_k: 8
 
 train:
   device: 0

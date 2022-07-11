@@ -19,7 +19,7 @@ model:
 dataset:
   name: game
   file_name: game
-  keywords: keybert_train
+  keywords: game_cooc_matrix_all.npy
   keyword_edge_k: 12
 
 train:

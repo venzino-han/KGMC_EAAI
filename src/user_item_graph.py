@@ -20,10 +20,9 @@ class UserItemGraph(object):
     only user user-item pairs in range when extracting subgraph
     """
     def __init__(self, label_col:str, user_col:str, item_col:str, text_col:str,
-                 df:pd.DataFrame, edge_idx_range:tuple, 
-                 item_kw_df:pd.DataFrame=None, user_kw_df:pd.DataFrame=None):
+                 df:pd.DataFrame, edge_idx_range:tuple,
+                 ):
         df = df.copy()
-
         df['etype'] = df[label_col]
 
         self.user_col = user_col
@@ -40,12 +39,6 @@ class UserItemGraph(object):
         etypes = df[label_col].to_numpy()
         labels = (df[label_col].to_numpy() - 1)/4
         ts = df['ts'].to_numpy()
-
-        # build user/item id - keywords array dict
-        # assign as ndata after extract 
-        self.nid_arr_dict = None
-        if user_kw_df is not None and item_kw_df is not None:
-            self.nid_arr_dict = self._convert_doc_array(df, item_kw_df, user_kw_df)
 
         # use whole data to build main graph
         # add bidirect edges
@@ -85,51 +78,3 @@ class UserItemGraph(object):
         for u, i in zip(self.user_indices, self.item_indices):
             pairs.append((u,i))
         return pairs
-
-    def _get_keyword_vector(self, text:str):
-        n = len(self.keywords_index_dict)
-        one_hot_vector = [0]*n
-        words = text.split()
-        for w in words:
-            i = self.keywords_index_dict.get(w)
-            if i != None:
-                one_hot_vector[i] = 1
-
-        return one_hot_vector
-
-    def _convert_doc_array(self, df, item_kw_df, user_kw_df):
-        self.keywords_index_dict = {}
-        kw_id = 0 
-        kw_set = set(item_kw_df['keyword'])
-        kw_set = kw_set.union(set(user_kw_df['keyword']))
-        for kw in kw_set:
-            if kw not in self.keywords_index_dict:
-                self.keywords_index_dict[kw] = kw_id
-                kw_id += 1
-        
-        # group review and construct user/item document
-        item_docs = df.groupby(self.item_col)[self.text_col].apply(lambda x: ' '.join(x))
-        user_docs = df.groupby(self.user_col)[self.text_col].apply(lambda x: ' '.join(x))
-
-        nid_arr_dict = {}
-        for i, d in zip(item_docs.index, item_docs.values):
-            nid_arr_dict[i] = self._get_keyword_vector(d)
-    
-        for i, d in zip(user_docs.index, user_docs.values):
-            nid_arr_dict[i] = self._get_keyword_vector(d)
-        
-        return nid_arr_dict
-
-from itertools import combinations
-from collections import  defaultdict
-from tqdm import tqdm
-
-def get_keyword_co_occurrence_matrix(user_item_graph:UserItemGraph):
-    g = user_item_graph.graph
-    nid_arr_dict = user_item_graph.nid_arr_dict
-
-    n = len(g.ndata['node_id'])
-    keyword_matrix = np.array([ nid_arr_dict[i] for i in range(n) ])
-    keyword_co_occurrence_matrix = np.matmul(keyword_matrix, keyword_matrix.T)
-    
-    return  keyword_co_occurrence_matrix
