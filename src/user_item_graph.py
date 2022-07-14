@@ -38,7 +38,7 @@ class UserItemGraph(object):
         u_idx, i_idx, = df[user_col].to_numpy(), df[item_col].to_numpy(), 
         etypes = df[label_col].to_numpy()
         labels = (df[label_col].to_numpy() - 1)/4
-        ts = df['ts'].to_numpy()
+        # ts = df['ts'].to_numpy()
 
         # use whole data to build main graph
         # add bidirect edges
@@ -47,7 +47,7 @@ class UserItemGraph(object):
         dst_nodes = np.concatenate((i_idx, u_idx))
         labels = np.concatenate((labels, labels))
         etypes = np.concatenate((etypes, etypes))
-        ts = np.concatenate((ts, ts))
+        # ts = np.concatenate((ts, ts))
 
         print('df len ', len(df))
         print('nodes ', num_nodes)
@@ -63,7 +63,7 @@ class UserItemGraph(object):
         self.graph.edata['original_dst_idx'] = th.tensor(dst_nodes, dtype=th.int32)
         self.graph.edata['label'] = th.tensor(labels, dtype=th.float32)
         self.graph.edata['etype'] = th.tensor(etypes, dtype=th.int32)
-        self.graph.edata['ts'] = th.tensor(ts, dtype=th.int32)
+        # self.graph.edata['ts'] = th.tensor(ts, dtype=th.int32)
 
         #extract subgraph pair idx
         start, end = edge_idx_range

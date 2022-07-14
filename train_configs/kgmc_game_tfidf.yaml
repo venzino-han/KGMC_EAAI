@@ -1,0 +1,6 @@
+---
+key: kgmc_game_tfidf
+dataset:
+  name: game
+  file_name: game
+  keywords: tfidf_cooc_matrix.npy

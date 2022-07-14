@@ -1,0 +1,6 @@
+---
+key: kgmc_toy_tfidf
+dataset:
+  name: toy
+  file_name: toy
+  keywords: tfidf_cooc_matrix_valid.npy

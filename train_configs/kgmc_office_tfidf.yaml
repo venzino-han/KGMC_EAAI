@@ -1,0 +1,7 @@
+---
+key: kgmc_office_tfidf
+
+dataset:
+  name: office
+  file_name: office
+  keywords: tfidf_cooc_matrix.npy

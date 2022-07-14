@@ -34,12 +34,24 @@ import yaml
 
 def get_args_from_yaml(yaml_path):
 
+    with open('train_configs/common_configs.yaml') as f:
+        common_cfgs = yaml.load(f, Loader=yaml.FullLoader)
+    data_cfg = common_cfgs['dataset']
+    model_cfg = common_cfgs['model']
+    train_cfg = common_cfgs['train']
+
     with open(yaml_path) as f:
         cfgs = yaml.load(f, Loader=yaml.FullLoader)
+    exp_data_cfg = cfgs.get('dataset', dict())
+    exp_model_cfg = cfgs.get('model', dict())
+    exp_train_cfg = cfgs.get('train', dict())
 
-    data_cfg = cfgs['dataset']
-    model_cfg = cfgs['model']
-    train_cfg = cfgs['train']
+    for k, v in exp_data_cfg.items():
+        data_cfg[k] = v
+    for k, v in exp_model_cfg.items():
+        model_cfg[k] = v
+    for k, v in exp_train_cfg.items():
+        train_cfg[k] = v
 
     args = EasyDict(
         {   

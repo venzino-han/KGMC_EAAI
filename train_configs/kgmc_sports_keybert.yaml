@@ -1,0 +1,7 @@
+---
+key: kgmc_sports_keybert
+
+dataset:
+  name: sports
+  file_name: sports
+  keywords: keybert_cooc_matrix_valid.npy

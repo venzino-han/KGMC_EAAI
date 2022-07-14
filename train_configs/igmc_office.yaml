@@ -1,5 +1,5 @@
 ---
-key: kgmc_music_keybert_train
+key: igmc_office
 model:
   type: IGMC
   hop: 1
@@ -13,14 +13,12 @@ model:
     - 32
     - 32
   num_heads: 4
-  num_relations: 6
+  num_relations: 5
   edge_dropout: 0.3
   
 dataset:
-  name: music
-  file_name: music
-  keywords: keybert_train
-  keyword_edge_k: 8
+  name: office
+  file_name: office
 
 train:
   device: 0
@@ -32,8 +30,6 @@ train:
     - 1e-3
     - 1e-3
     - 1e-3
-    # - 2e-3
-    # - 5e-4
   weight_decay: 0.0
   lr_decay_step: 5
   lr_decay_factor: 0.90

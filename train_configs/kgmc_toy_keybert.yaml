@@ -1,5 +1,5 @@
 ---
-key: kgmc_game_keybert_train
+key: kgmc_toy_keybert
 model:
   type: IGMC
   hop: 1
@@ -17,10 +17,10 @@ model:
   edge_dropout: 0.3
   
 dataset:
-  name: game
-  file_name: game
-  keywords: game_cooc_matrix_valid.npy
-  keyword_edge_k: 12
+  name: toy
+  file_name: toy
+  keywords: keybert_cooc_matrix_valid.npy
+  keyword_edge_k: 24
 
 train:
   device: 0
@@ -32,8 +32,6 @@ train:
     - 1e-3
     - 1e-3
     - 1e-3
-    # - 2e-3
-    # - 5e-4
   weight_decay: 0.0
   lr_decay_step: 5
   lr_decay_factor: 0.90
