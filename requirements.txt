@@ -3,3 +3,6 @@ torch
 networkx
 scipy
 easydict
+nltk
+sklearn
+sentence_transformers
