@@ -16,7 +16,7 @@ model:
   edge_dropout: 0.3
   
 dataset:
-  keyword_edge_k: 8
+  keyword_edge_k: 24
 
 train:
   device: 0

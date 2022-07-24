@@ -5,18 +5,16 @@ import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
 
-# from ..relgraphconv import RelGraphConv
 from dgl.nn.pytorch import RelGraphConv
+from .igmc import IGMC, edge_drop
 
 def uniform(size, tensor):
     bound = 1.0 / math.sqrt(size)
     if tensor is not None:
         tensor.data.uniform_(-bound, bound)
 
-class IGMC(nn.Module):
-    # The GNN model of Inductive Graph-based Matrix Completion. 
-    # Use RGCN convolution + center-nodes readout.
-    
+class IGMC_BERT(IGMC):
+
     def __init__(self, in_feats, gconv=RelGraphConv, latent_dim=[32, 32, 32, 32], 
                 num_relations=5, num_bases=2, regression=False, edge_dropout=0.2, 
                 force_undirected=False, side_features=False, n_side_features=0, 
@@ -37,7 +35,8 @@ class IGMC(nn.Module):
         
         self.lin1 = nn.Linear(2 * sum(latent_dim), 128)
         if side_features:
-            self.lin1 = nn.Linear(2 * sum(latent_dim) + n_side_features, 128)
+            self.lin1 = nn.Linear(2 * sum(latent_dim), 64)
+            self.lin1_ = nn.Linear(n_side_features, 64)
         if self.regression:
             self.lin2 = nn.Linear(128, 1)
         else:
@@ -45,12 +44,7 @@ class IGMC(nn.Module):
             # self.lin2 = nn.Linear(128, n_classes)
         self.reset_parameters()
 
-    def reset_parameters(self):
-        
-        self.lin1.reset_parameters()
-        self.lin2.reset_parameters()
-
-    def forward(self, block):
+    def forward(self, block, bert_vector):
         block = edge_drop(block, self.edge_dropout, self.training)
 
         concat_states = []
@@ -65,28 +59,15 @@ class IGMC(nn.Module):
         
         users = block.ndata['nlabel'][:, 0] == 1
         items = block.ndata['nlabel'][:, 1] == 1
+        # print(bert_vector.shape)
         x = th.cat([concat_states[users], concat_states[items]], 1)
+        # print(x.shape)
+        bert_vector = F.relu(self.lin1_(bert_vector))
         x = F.relu(self.lin1(x))
+        x = th.cat([x, bert_vector], 1)
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.lin2(x)
         if self.regression:
             return x[:, 0] * self.multiply_by
         else:
             assert False
-
-    def __repr__(self):
-        return self.__class__.__name__
-
-def edge_drop(graph, edge_dropout=0.2, training=True):
-    assert edge_dropout >= 0.0 and edge_dropout <= 1.0, 'Invalid dropout rate.'
-
-    if not training:
-        return graph
-
-    # set edge mask to zero in directional mode
-    src, _ = graph.edges()
-    to_drop = src.new_full((graph.number_of_edges(), ), edge_dropout, dtype=th.float)
-    to_drop = th.bernoulli(to_drop).to(th.bool)
-    graph.edata['edge_mask'][to_drop] = 0
-
-    return graph

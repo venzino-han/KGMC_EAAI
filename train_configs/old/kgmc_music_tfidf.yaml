@@ -1,0 +1,6 @@
+---
+key: kgmc_music_tfidf
+dataset:
+  name: music
+  file_name: music
+  keywords: tfidf_cooc_matrix.npy

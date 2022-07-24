@@ -4,4 +4,4 @@ key: kgmc_sports_tfidf
 dataset:
   name: sports
   file_name: sports
-  keywords: tfidf_cooc_matrix_valid.npy
+  keywords: tfidf_cooc_matrix.npy

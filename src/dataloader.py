@@ -1,3 +1,6 @@
+from ast import keyword
+from copy import copy
+from re import sub
 import torch as th
 import pandas as pd
 import numpy as np
@@ -78,7 +81,7 @@ def subgraph_extraction_labeling(u_node_idx, i_node_idx, graph,
     subgraph.ndata['x'] = subgraph.ndata['nlabel']
 
     # set edge mask to zero as to remove links between target nodes in training process
-    subgraph.edata['edge_mask'] = th.ones(subgraph.number_of_edges(), dtype=th.int32)
+    subgraph.edata['edge_mask'] = th.ones(subgraph.number_of_edges(), dtype=th.float32)
     su = subgraph.nodes()[subgraph.ndata[dgl.NID]==u_node_idx]
     si = subgraph.nodes()[subgraph.ndata[dgl.NID]==i_node_idx]
     _, _, target_edges = subgraph.edge_ids([su, si], [si, su], return_uv=True)
@@ -106,7 +109,8 @@ def subgraph_extraction_labeling(u_node_idx, i_node_idx, graph,
 
 class UserItemDataset(th.utils.data.Dataset):
     def __init__(self, user_item_graph: UserItemGraph,
-                 keyword_edge_k=12, keyword_edge_cooc_matrix=None, 
+                 keyword_edge_k=12, keyword_edge_cooc_matrix=None,
+                 additional_feature=None,
                  hop=1, sample_ratio=1.0, max_nodes_per_hop=100):
 
         self.g_labels = user_item_graph.labels
@@ -116,6 +120,7 @@ class UserItemDataset(th.utils.data.Dataset):
 
         self.keyword_edge_k = keyword_edge_k
         self.keyword_edge_cooc_matrix = keyword_edge_cooc_matrix
+        self.additional_feature = additional_feature
 
         self.hop = hop
         self.sample_ratio = sample_ratio
@@ -134,10 +139,102 @@ class UserItemDataset(th.utils.data.Dataset):
         
         g_label = self.g_labels[idx]
         if self.keyword_edge_cooc_matrix is not None:
-            subgraph = self._add_keyword_edge(subgraph)
+            subgraph = self._add_keyword_normalized_edge(subgraph)
+
+        if self.additional_feature is not None:
+            try:
+                u_vector = self.additional_feature[u_idx]
+                i_vector = self.additional_feature[i_idx]
+            except:
+                u_vector = np.zeros((768,), dtype=np.float32)
+                i_vector = np.zeros((768,), dtype=np.float32)
+
+            feature_vector = np.concatenate([u_vector, i_vector], axis=0)
+            n = subgraph.number_of_nodes()
+            # print(feature_vector.shape)
+            # print(np.tile(feature_vector, (n,1)).shape)
+            # subgraph.ndata['embedding'] = th.tensor(np.tile(feature_vector, (n,1)))
+            return subgraph, feature_vector, g_label
+        
         return subgraph, g_label
 
-    def _add_keyword_edge(self, subg):
+    # def _generate_keyword_graph(self, subg, min_count=5, max_count=100):
+    #     oid_nid_dict = {}
+    #     for new_id, original_id in zip(subg.nodes().tolist(), subg.ndata['_ID'].tolist()):
+    #         oid_nid_dict[original_id] = new_id
+
+    #     nids = subg.ndata['node_id'].tolist()
+    #     pairs = list(combinations(nids, 2))
+    #     additional_edges = []
+    #     keyword_cooc_counts = []
+    #     for i, j in pairs:
+    #         if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
+    #             continue
+    #         k_count = self.keyword_edge_cooc_matrix[i,j]
+    #         if k_count > min_count:
+    #             additional_edges.append((i,j))
+    #             if k_count > max_count:
+    #                 k_count = max_count
+    #             keyword_cooc_counts.append(k_count)
+        
+    #     if len(keyword_cooc_counts) == 0:
+    #         keyword_subg = dgl.graph(([], []), num_nodes=len(nids))
+    #         for k, v in subg.ndata.items():
+    #             keyword_subg.ndata[k] = v 
+    #         keyword_subg.edata['keywords'] = th.tensor([], dtype=th.float32)
+    #         return dgl.add_self_loop(keyword_subg)
+
+    #     norm_keyword_cooc_counts = 1 - np.array(keyword_cooc_counts)/max(keyword_cooc_counts)
+    #     src, dst = [], [] 
+    #     for i,j in additional_edges:
+    #         src += [oid_nid_dict[i], oid_nid_dict[j]]
+    #         dst += [oid_nid_dict[j], oid_nid_dict[i]]
+
+    #     keyword_subg = dgl.graph((src, dst), num_nodes=len(nids))
+    #     for k, v in subg.ndata.items():
+    #         keyword_subg.ndata[k] = v 
+    #     keyword_subg.edata['keywords'] = th.tensor([e for x in zip(*[norm_keyword_cooc_counts]*2) for e in x], dtype=th.float32)
+    #     return dgl.add_self_loop(keyword_subg)
+
+    def _add_keyword_normalized_edge(self, subg, min_count=5, max_count=100):
+        oid_nid_dict = {}
+        for new_id, original_id in zip(subg.nodes().tolist(), subg.ndata['_ID'].tolist()):
+            oid_nid_dict[original_id] = new_id
+
+        nids = subg.ndata['node_id'].tolist()
+
+        pairs = list(combinations(nids, 2))
+        additional_edges = []
+        keyword_cooc_counts = []
+        for i, j in pairs:
+            if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
+                continue
+            k_count = self.keyword_edge_cooc_matrix[i,j]
+            if k_count > min_count:
+                additional_edges.append((i,j))
+                if k_count > max_count:
+                    k_count = max_count
+                keyword_cooc_counts+= [k_count, k_count]
+
+        if len(keyword_cooc_counts) == 0:
+            return subg
+
+        src, dst = [], [] 
+        for i,j in additional_edges:
+            src += [oid_nid_dict[i], oid_nid_dict[j]]
+            dst += [oid_nid_dict[j], oid_nid_dict[i]]
+
+        norm_keyword_cooc_counts = np.array(keyword_cooc_counts)/max(keyword_cooc_counts)
+        n_edges = len(keyword_cooc_counts)
+        edata={
+            'etype': th.tensor([0]*n_edges, dtype=th.int32),
+            'label': th.tensor([1.]*n_edges),
+            'edge_mask': th.tensor(norm_keyword_cooc_counts, dtype=th.float32),
+        }
+        subg.add_edges(src, dst, data=edata)
+        return subg
+
+    def _add_keyword_count_edge(self, subg):
         oid_nid_dict = {}
         for new_id, original_id in zip(subg.nodes().tolist(), subg.ndata['_ID'].tolist()):
             oid_nid_dict[original_id] = new_id
@@ -168,6 +265,20 @@ def collate_data(data):
     g = dgl.batch(g_list)
     g_label = th.stack(label_list)
     return g, g_label
+
+def kgraph_collate_data(data):
+    g_list, kg_list, label_list = map(list, zip(*data))
+    g = dgl.batch(g_list)
+    kg = dgl.batch(kg_list)
+    g_label = th.stack(label_list)
+    return g, kg, g_label
+
+def bert_collate_data(data):
+    g_list, vector_list, label_list = map(list, zip(*data))
+    g = dgl.batch(g_list)
+    vectors = th.stack([th.tensor(v) for v in vector_list])
+    g_label = th.stack(label_list)
+    return g, vectors, g_label
 
 
 def get_graphs(data_path, item_kw_df=None, user_kw_df=None):
@@ -203,15 +314,21 @@ def get_graphs(data_path, item_kw_df=None, user_kw_df=None):
     return train_graph, valid_graph, test_graph
 
 
-def get_dataloader(graph, keyword_edge_cooc_matrix, keyword_edge_k=12, batch_size=32, num_workers=8 ,shuffle=True):
+def get_dataloader(graph, keyword_edge_cooc_matrix, keyword_edge_k=12, additional_feature=None, batch_size=32, num_workers=8 ,shuffle=True):
 
     graph_dataset = UserItemDataset(user_item_graph=graph, 
                                     keyword_edge_cooc_matrix=keyword_edge_cooc_matrix,
                                     keyword_edge_k=keyword_edge_k, 
+                                    additional_feature=additional_feature,
                                     hop=1, sample_ratio=1.0, max_nodes_per_hop=100)
 
     graph_loader = th.utils.data.DataLoader(graph_dataset, batch_size=batch_size, shuffle=shuffle, 
                                             num_workers=num_workers, collate_fn=collate_data, pin_memory=True)
+
+    if additional_feature is not None:
+        graph_loader = th.utils.data.DataLoader(graph_dataset, batch_size=batch_size, shuffle=shuffle, 
+                                                num_workers=num_workers, collate_fn=bert_collate_data, pin_memory=True)
+
 
     return graph_loader
 

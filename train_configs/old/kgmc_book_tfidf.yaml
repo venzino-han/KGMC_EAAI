@@ -1,0 +1,6 @@
+---
+key: kgmc_book_tfidf
+dataset:
+  name: book
+  file_name: book
+  keywords: tfidf_cooc_matrix.npy

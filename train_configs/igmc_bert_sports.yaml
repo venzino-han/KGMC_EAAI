@@ -1,0 +1,10 @@
+---
+key: igmc_bert_sports
+model:
+  type: IGMC_BERT
+  num_relations: 5
+
+dataset:
+  name: sports
+  file_name: sports
+  additional_feature: doc_embeddings.npy

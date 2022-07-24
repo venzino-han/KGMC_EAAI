@@ -1,0 +1,6 @@
+---
+key: kgmc_toy_text_rank
+dataset:
+  name: toy
+  file_name: toy
+  keywords: text_rank_cooc_matrix.npy

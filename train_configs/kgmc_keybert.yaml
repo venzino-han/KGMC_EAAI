@@ -1,0 +1,10 @@
+---
+key: kgmc_keybert
+dataset:
+  names: 
+    # - music
+    # - office
+    - sports
+    # - toy
+    # - game
+  keywords: keybert_cooc_matrix_valid.npy

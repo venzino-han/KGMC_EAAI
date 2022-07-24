@@ -10,7 +10,26 @@ files:
   # - ./train_configs/igmc_office.yaml
   # - ./train_configs/kgmc_office_keybert.yaml
   
-  - ./train_configs/kgmc_game_tfidf.yaml
-  - ./train_configs/kgmc_sports_tfidf.yaml
-  - ./train_configs/kgmc_office_tfidf.yaml
-  - ./train_configs/kgmc_toy_tfidf.yaml
+  # - ./train_configs/kgmc_game_tfidf.yaml
+  # - ./train_configs/kgmc_sports_tfidf.yaml
+  # - ./train_configs/kgmc_office_tfidf.yaml
+  # - ./train_configs/kgmc_toy_tfidf.yaml
+  # - ./train_configs/kgmc_music_tfidf.yaml
+  # - ./train_configs/kgmc_book_tfidf.yaml
+
+  # - ./train_configs/kgmc_game_text_rank.yaml
+  # - ./train_configs/kgmc_sports_text_rank.yaml
+  # - ./train_configs/kgmc_office_text_rank.yaml
+  # - ./train_configs/kgmc_toy_text_rank.yaml
+  # - ./train_configs/kgmc_music_text_rank.yaml
+  # - ./train_configs/kgmc_book_text_rank.yaml
+
+  # - ./train_configs/igmc_bert_game.yaml
+  # - ./train_configs/igmc_bert_book.yaml
+  # - ./train_configs/igmc_bert_music.yaml
+  # - ./train_configs/igmc_bert_office.yaml
+  # - ./train_configs/igmc_bert_sports.yaml
+  # - ./train_configs/igmc_bert_toy.yaml
+
+  - ./train_configs/kgmc_keybert_ttf_idkf.yaml
+

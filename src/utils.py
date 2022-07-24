@@ -57,10 +57,10 @@ def get_args_from_yaml(yaml_path):
         {   
             'key': cfgs['key'],
 
-            'dataset': data_cfg['name'],
-            'dataset_filename': data_cfg['file_name'],
+            'datasets': data_cfg.get('names'),
             'keywords': data_cfg.get('keywords'),
             'keyword_edge_k': data_cfg.get('keyword_edge_k'),
+            'additional_feature': data_cfg.get('additional_feature'),
             
             # model configs
             'model_type': model_cfg['type'],
@@ -104,6 +104,18 @@ def evaluate(model, loader, device):
         with th.no_grad():
             preds = model(batch[0].to(device))
         labels = batch[1].to(device)
+        mse += ((preds - labels) ** 2).sum().item()
+    mse /= len(loader.dataset)
+    return np.sqrt(mse)
+
+def feature_evaluate(model, loader, device):
+    # Evaluate RMSE
+    model.eval()
+    mse = 0.
+    for batch in loader:
+        with th.no_grad():
+            preds = model(batch[0].to(device), batch[1].to(device))
+        labels = batch[2].to(device)
         mse += ((preds - labels) ** 2).sum().item()
     mse /= len(loader.dataset)
     return np.sqrt(mse)

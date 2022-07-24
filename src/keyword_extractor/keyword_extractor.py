@@ -26,9 +26,8 @@ class KeywordExtractor:
     def extract_keywords(self,):
         raise NotImplementedError("extract_keywords 메소드를 구현하여야 합니다.")
 
-    def get_keywords(self, duplicate_limit=0.1, num_keywords=500) -> set:
+    def get_keywords(self, duplicate_limit=0.1, num_keywords=512) -> set:
         word_set = set(self.word_count_df.query('count>1').query(f'count<{duplicate_limit*len(self.docs)}').index.tolist())
-        # print(list(word_set)[:10])
         filtered_kw = set()
         count = 0
         for w, s in sorted(self.keywords.items(), key=lambda item: item[1])[::-1]:
@@ -106,9 +105,12 @@ class KeyBertExtractor(KeywordExtractor):
         super().__init__(docs, n_gram_range)
         self.stop_words = "english"
         self.model = SentenceTransformer('distilbert-base-nli-mean-tokens')
+        # {word:total_freq}
+        self.total_word_freq = defaultdict(int)
     
     def extract_keywords(self, top_n=5) -> None:
         kws = defaultdict(int)
+        doc_kws = []
         for doc in tqdm(self.docs):
             try:
                 count = CountVectorizer(ngram_range=self.n_gram_range, stop_words=self.stop_words).fit([doc])
@@ -116,12 +118,74 @@ class KeyBertExtractor(KeywordExtractor):
                 continue
             candidates = count.get_feature_names_out()
 
-            doc_embedding = self.model.encode([doc])
-            candidate_embeddings = self.model.encode(candidates)
+            doc_embedding = self.model.encode([doc], show_progress_bar=False )
+            candidate_embeddings = self.model.encode(candidates, show_progress_bar=False )
 
             distances = cosine_similarity(doc_embedding, candidate_embeddings)
             keywords = [candidates[index] for index in distances.argsort()[0][-top_n:]]
+
             for kw in keywords:
                 kws[kw] += 1
+
+            # # only count words in each doc keyword set
+            # for w in doc.split():
+            #     if w in kws.keys():
+            #         self.total_word_freq[w] += 1
+
+            doc_kws.append(set(keywords))
         
+        #count total keyword freq
+        for doc in self.docs:
+            for w in doc.split():
+                if w in kws:
+                    self.total_word_freq[w] += 1
+
+        self.keyword_count = kws
+        self.kws_list = doc_kws
+
+    def get_tf_idkf(self,):
+        docs_len = len(self.docs)
+        kw_tfidkf_dict = dict()
+        for kw, kw_count in self.keyword_count.items():
+            tf = self.total_word_freq.get(kw, 0)
+            kw_tfidkf_dict[kw] = tf * np.log(docs_len/kw_count)
+        return kw_tfidkf_dict
+
+    def get_keywords(self, duplicate_limit, num_keywords=512) -> set:
+        word_set = set(self.word_count_df.query('count>1').query(f'count<{duplicate_limit*len(self.docs)}').index.tolist())
+        filtered_kw = set()
+        count = 0
+        kw_idkf_dict = self.get_tf_idkf()
+        for w, s in sorted(kw_idkf_dict.items(), key=(lambda item: item[1]), reverse=True):
+            if w in word_set:
+                filtered_kw.add(w)
+                count += 1
+            if count == num_keywords:
+                break
+        return filtered_kw
+
+
+class KeyBertEmbeddingExtractor(KeywordExtractor):
+    def __init__(self, docs) -> None:
+        super().__init__(docs)
+        self.stop_words = "english"
+        self.model = SentenceTransformer('distilbert-base-nli-mean-tokens')
+    
+    def extract_embeddings(self,) -> None:
+        embeddings=[]
+        for doc in tqdm(self.docs):
+            embedding = self.model.encode([doc])
+            embeddings.append(embedding)
+        embeddings = np.concatenate(embeddings, axis=0)
+        return embeddings
+
+
+# TODO
+class LDAExtractor(KeywordExtractor):
+    def extract_keywords(self, top_n=5):
+        kws = defaultdict(int)
+        for doc in tqdm(self.docs):
+            keyword_list=keywords.keywords(doc).split('\n')[:top_n]
+            for kw in keyword_list:
+                kws[kw] += 1     
         self.keywords = kws 

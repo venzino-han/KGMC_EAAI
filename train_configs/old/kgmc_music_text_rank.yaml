@@ -1,0 +1,6 @@
+---
+key: kgmc_music_text_rank
+dataset:
+  name: music
+  file_name: music
+  keywords: text_rank_cooc_matrix.npy

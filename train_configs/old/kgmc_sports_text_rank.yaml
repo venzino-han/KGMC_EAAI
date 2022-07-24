@@ -1,0 +1,7 @@
+---
+key: kgmc_sports_text_rank
+  
+dataset:
+  name: sports
+  file_name: sports
+  keywords: text_rank_cooc_matrix.npy

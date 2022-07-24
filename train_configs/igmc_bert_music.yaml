@@ -1,0 +1,10 @@
+---
+key: igmc_bert_music
+model:
+  type: IGMC_BERT
+  num_relations: 5
+
+dataset:
+  name: music
+  file_name: music
+  additional_feature: doc_embeddings.npy

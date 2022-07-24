@@ -11,11 +11,14 @@ from torch import optim
 import time
 from easydict import EasyDict
 
-from utils import get_logger, get_args_from_yaml, evaluate
+from utils import get_logger, get_args_from_yaml, evaluate, feature_evaluate
 from dataloader import get_graphs, get_dataloader
-from models.igmc import IGMC
 
-def train_epoch(model, loss_fn, optimizer, loader, device, logger, log_interval):
+from models.kgmc import KGMC
+from models.igmc import IGMC
+from models.igmc_bert import IGMC_BERT
+
+def train_epoch(model, loss_fn, optimizer, loader, device, logger, log_interval, train_model=None):
     model.train()
 
     epoch_loss = 0.
@@ -27,9 +30,20 @@ def train_epoch(model, loss_fn, optimizer, loader, device, logger, log_interval)
     for iter_idx, batch in enumerate(loader, start=1):
         t_start = time.time()
 
-        inputs = batch[0].to(device)
-        labels = batch[1].to(device)
-        preds = model(inputs)
+        if train_model == 'IGMC_BERT':
+            inputs = batch[0].to(device)
+            vectors = batch[1].to(device)
+            labels = batch[2].to(device)
+            preds = model(inputs, vectors)
+        elif train_model == 'KGMC':
+            inputs = batch[0].to(device)
+            keywords = batch[1].to(device)
+            labels = batch[2].to(device)
+            preds = model(inputs, keywords)
+        else:
+            inputs = batch[0].to(device)
+            labels = batch[1].to(device)
+            preds = model(inputs)
         loss = loss_fn(preds, labels).mean()
 
         optimizer.zero_grad()
@@ -57,12 +71,21 @@ def train(args:EasyDict, logger):
     np.random.seed(0)
     dgl.random.seed(0)
 
-    data_path = f'data/{args.dataset}/{args.dataset_filename}'
+    data_path = f'data/{args.data_name}/{args.data_name}'
     if args.keywords is not None:
-        with open(f'data/{args.dataset}/{args.keywords}', 'rb') as f:
+        with open(f'data/{args.data_name}/{args.keywords}', 'rb') as f:
             keyword_edge_matrix = np.load(f)
     else:
         keyword_edge_matrix = None
+
+    # for bert embedding test
+    if args.additional_feature is not None:
+        n_side_features = 768*2
+        with open(f'data/{args.data_name}/{args.additional_feature}', 'rb') as f:
+            additional_feature = np.load(f)
+    else:
+        additional_feature = None
+        n_side_features = 0
 
     train_graph, valid_graph, test_graph = get_graphs(data_path=data_path)
     
@@ -70,33 +93,56 @@ def train(args:EasyDict, logger):
     train_loader = get_dataloader(train_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 
                                  keyword_edge_k=keyword_edge_k,
                                  batch_size=args.batch_size, 
-                                 num_workers=NUM_WORKER, 
+                                 num_workers=NUM_WORKER,
+                                 additional_feature=additional_feature,
                                  shuffle=True, 
                                  )
     valid_loader = get_dataloader(valid_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 
                                  keyword_edge_k=keyword_edge_k,
                                  batch_size=args.batch_size, 
                                  num_workers=NUM_WORKER, 
+                                 additional_feature=additional_feature,
                                  shuffle=False,
                                  )
     test_loader = get_dataloader(test_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 
                                  batch_size=args.batch_size, 
                                  keyword_edge_k=keyword_edge_k,
                                  num_workers=NUM_WORKER, 
+                                 additional_feature=additional_feature, 
                                  shuffle=False,
                                  )
 
     ### prepare data and set model
+    in_feats = (args.hop+1)*2 
     if args.model_type == 'IGMC':
-        in_feats = (args.hop+1)*2 
         model = IGMC(in_feats=in_feats, 
                      latent_dim=args.latent_dims,
                      num_relations=args.num_relations, 
                      num_bases=4, 
-                     regression=True, 
+                     regression=True,
                      edge_dropout=args.edge_dropout,
                      ).to(args.device)
 
+    elif args.model_type == 'IGMC_BERT':
+        model = IGMC_BERT(in_feats=in_feats, 
+                        latent_dim=args.latent_dims,
+                        num_relations=args.num_relations, 
+                        num_bases=4, 
+                        regression=True,
+                        side_features=True,
+                        n_side_features=n_side_features,
+                        edge_dropout=args.edge_dropout,
+                        ).to(args.device)
+
+    elif args.model_type == 'KGMC':
+        model = KGMC(in_feats=in_feats, 
+                     latent_dim=args.latent_dims,
+                     num_relations=5, 
+                     num_bases=4, 
+                     regression=True,
+                     edge_dropout=args.edge_dropout,
+                     ).to(args.device)
+    
     elif args.model_type == 'EGMC':
         pass
 
@@ -110,13 +156,20 @@ def train(args:EasyDict, logger):
 
     logger.info(f"Start training ... learning rate : {args.train_lr}")
     epochs = list(range(1, args.train_epochs+1))
+
+    eval_func_map = {
+        'KGMC': feature_evaluate,
+        'IGMC_BERT': feature_evaluate,
+        'IGMC': evaluate,
+    }
+    eval_func = eval_func_map.get(args.model_type, evaluate)
     for epoch_idx in epochs:
         logger.debug(f'Epoch : {epoch_idx}')
     
         train_loss = train_epoch(model, loss_fn, optimizer, train_loader, 
-                                 args.device, logger, args.log_interval)
-        val_rmse = evaluate(model, valid_loader, args.device)
-        test_rmse = evaluate(model, test_loader, args.device)
+                                 args.device, logger, args.log_interval, train_model=args.model_type)
+        val_rmse = eval_func(model, valid_loader, args.device)
+        test_rmse = eval_func(model, test_loader, args.device)
         eval_info = {
             'epoch': epoch_idx,
             'train_loss': train_loss,
@@ -136,34 +189,46 @@ def train(args:EasyDict, logger):
             best_rmse = test_rmse
             best_state = copy.deepcopy(model.state_dict())
 
-    th.save(best_state, f'./parameters/{args.key}_{best_rmse:.4f}.pt')
+    th.save(best_state, f'./parameters/{args.key}_{args.data_name}_{best_rmse:.4f}.pt')
     logger.info(f"Training ends. The best testing rmse is {best_rmse:.6f} at epoch {best_epoch}")
     return best_rmse
     
 import yaml
+from collections import defaultdict
+from datetime import datetime
 
 def main():
     with open('./train_configs/train_list.yaml') as f:
         files = yaml.load(f, Loader=yaml.FullLoader)
     file_list = files['files']
     for f in file_list:
-        
         args = get_args_from_yaml(f)
         logger = get_logger(name=args.key, path=f"{args.log_dir}/{args.key}.log")
         logger.info('train args')
         for k,v in args.items():
             logger.info(f'{k}: {v}')
 
-        final_best_rmse = 100
+        test_results = defaultdict(list)
         best_lr = None
-        best_rmses = []
-        for lr in args.train_lrs:
+        for data_name in args.datasets:
             sub_args = args
-            sub_args['train_lr'] = lr
-            best_rmse = train(sub_args, logger=logger)
-            best_rmses.append(best_rmse)
-        logger.info(f"**********The final best testing RMSE is {min(best_rmses):.6f} at lr {best_lr}********")
-        logger.info(f"**********The mean testing RMSE is {np.mean(best_rmses):.6f}, {np.std(best_rmses)} ********")
-
+            sub_args['data_name'] = data_name
+            best_rmse_list = []
+            for lr in args.train_lrs:
+                sub_args['train_lr'] = lr
+                best_rmse = train(sub_args, logger=logger)
+                test_results[data_name].append(best_rmse)
+                best_rmse_list.append(best_rmse)
+            
+            logger.info(f"**********The final best testing RMSE is {min(best_rmse_list):.6f} at lr {best_lr}********")
+            logger.info(f"**********The mean testing RMSE is {np.mean(best_rmse_list):.6f}, {np.std(best_rmse_list)} ********")
+        
+        mean_std_dict = dict()
+        for dataset, results in test_results.items():
+            mean_std_dict[dataset] = [f'{np.mean(results):.4f} ± {np.std(results):.5f}']
+        mean_std_df = pd.DataFrame(mean_std_dict)
+        date_time = datetime.now().strftime("%Y%m%d_%H:%M:%S")
+        mean_std_df.to_csv(f'./results/{args.key}_{date_time}')
+        
 if __name__ == '__main__':
     main()

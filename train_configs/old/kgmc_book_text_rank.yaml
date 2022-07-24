@@ -1,0 +1,6 @@
+---
+key: kgmc_book_text_rank
+dataset:
+  name: book
+  file_name: book
+  keywords: text_rank_cooc_matrix.npy

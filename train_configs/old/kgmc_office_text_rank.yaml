@@ -1,0 +1,7 @@
+---
+key: kgmc_office_text_rank
+
+dataset:
+  name: office
+  file_name: office
+  keywords: text_rank_cooc_matrix.npy

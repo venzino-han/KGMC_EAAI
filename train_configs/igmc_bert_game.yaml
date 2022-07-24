@@ -1,0 +1,10 @@
+---
+key: igmc_bert_game
+model:
+  type: IGMC_BERT
+  num_relations: 5
+
+dataset:
+  name: game
+  file_name: game
+  additional_feature: doc_embeddings.npy

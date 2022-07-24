@@ -1,0 +1,6 @@
+---
+key: kgmc_game_text_rank
+dataset:
+  name: game
+  file_name: game
+  keywords: text_rank_cooc_matrix.npy

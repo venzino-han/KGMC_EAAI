@@ -1,0 +1,10 @@
+---
+key: igmc_bert_book
+model:
+  type: IGMC_BERT
+  num_relations: 5
+
+dataset:
+  name: book
+  file_name: book
+  additional_feature: doc_embeddings.npy
