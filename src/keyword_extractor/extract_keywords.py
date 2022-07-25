@@ -58,7 +58,7 @@ if __name__=='__main__':
     }
 
     keyword_extraction_method='keybert'
-    for data_name in ['game', 'music', 'book', 'office', 'sports']:
+    for data_name in ['game', 'music', 'book', 'office', 'sports', 'toy']:
         train_df = pd.read_csv(f'data/{data_name}/{data_name}_train.csv')
         valid_df = pd.read_csv(f'data/{data_name}/{data_name}_valid.csv')
         test_df = pd.read_csv(f'data/{data_name}/{data_name}_test.csv')
@@ -74,15 +74,22 @@ if __name__=='__main__':
         keyword_extractor_class = keyword_extractors.get(keyword_extraction_method)
         keyword_extractor = keyword_extractor_class(docs, n_gram_range=(1,1))
         keyword_extractor.extract_keywords(top_n=5)
-        keywords = keyword_extractor.get_keywords(duplicate_limit=0.1, num_keywords=512)
+        keywords = keyword_extractor.get_keywords(duplicate_limit=0.1, num_keywords=1024)
         print(list(keywords)[:40])
         kw_df = pd.DataFrame({'keyword':list(keywords)})
         kw_df.to_csv(f'data/{data_name}/{keyword_extraction_method}_keywords.csv') 
         
+
+        df = pd.concat([train_df, valid_df, test_df])
+        df = df.dropna()
+        df['item_id'] += max(df.user_id)+1
+        item_docs = df.groupby('item_id')['text_clean'].apply(lambda x: ' '.join(x))
+        user_docs = df.groupby('user_id')['text_clean'].apply(lambda x: ' '.join(x))
+
         nid_arr_dict = convert_doc_array(item_docs, user_docs, kw_df)
         cooc_matrix = get_keyword_co_occurrence_matrix(nid_arr_dict)
 
-        with open(f'data/{data_name}/{keyword_extraction_method}_ttf_idkf_cooc_matrix.npy', 'wb') as f:
+        with open(f'data/{data_name}/{keyword_extraction_method}_testdoc_cooc_matrix.npy', 'wb') as f:
             np.save(f, cooc_matrix)
 
 

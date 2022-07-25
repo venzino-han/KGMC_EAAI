@@ -223,12 +223,12 @@ def main():
             logger.info(f"**********The final best testing RMSE is {min(best_rmse_list):.6f} at lr {best_lr}********")
             logger.info(f"**********The mean testing RMSE is {np.mean(best_rmse_list):.6f}, {np.std(best_rmse_list)} ********")
         
-        mean_std_dict = dict()
-        for dataset, results in test_results.items():
-            mean_std_dict[dataset] = [f'{np.mean(results):.4f} ± {np.std(results):.5f}']
-        mean_std_df = pd.DataFrame(mean_std_dict)
-        date_time = datetime.now().strftime("%Y%m%d_%H:%M:%S")
-        mean_std_df.to_csv(f'./results/{args.key}_{date_time}')
+            mean_std_dict = dict()
+            for dataset, results in test_results.items():
+                mean_std_dict[dataset] = [f'{np.mean(results):.4f} ± {np.std(results):.5f}']
+            mean_std_df = pd.DataFrame(mean_std_dict)
+            date_time = datetime.now().strftime("%Y%m%d_%H:%M:%S")
+            mean_std_df.to_csv(f'./results/{args.key}_{date_time}')
         
 if __name__ == '__main__':
     main()

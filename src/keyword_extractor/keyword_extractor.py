@@ -30,7 +30,7 @@ class KeywordExtractor:
         word_set = set(self.word_count_df.query('count>1').query(f'count<{duplicate_limit*len(self.docs)}').index.tolist())
         filtered_kw = set()
         count = 0
-        for w, s in sorted(self.keywords.items(), key=lambda item: item[1])[::-1]:
+        for w, s in sorted(self.keywords.items(), key=(lambda item: item[1]), reverse=True):
             if w in word_set:
                 filtered_kw.add(w)
                 count += 1
@@ -140,7 +140,7 @@ class KeyBertExtractor(KeywordExtractor):
                 if w in kws:
                     self.total_word_freq[w] += 1
 
-        self.keyword_count = kws
+        self.keywords = kws
         self.kws_list = doc_kws
 
     def get_tf_idkf(self,):
@@ -151,18 +151,18 @@ class KeyBertExtractor(KeywordExtractor):
             kw_tfidkf_dict[kw] = tf * np.log(docs_len/kw_count)
         return kw_tfidkf_dict
 
-    def get_keywords(self, duplicate_limit, num_keywords=512) -> set:
-        word_set = set(self.word_count_df.query('count>1').query(f'count<{duplicate_limit*len(self.docs)}').index.tolist())
-        filtered_kw = set()
-        count = 0
-        kw_idkf_dict = self.get_tf_idkf()
-        for w, s in sorted(kw_idkf_dict.items(), key=(lambda item: item[1]), reverse=True):
-            if w in word_set:
-                filtered_kw.add(w)
-                count += 1
-            if count == num_keywords:
-                break
-        return filtered_kw
+    # def get_keywords(self, duplicate_limit, num_keywords=512) -> set:
+    #     word_set = set(self.word_count_df.query('count>1').query(f'count<{duplicate_limit*len(self.docs)}').index.tolist())
+    #     filtered_kw = set()
+    #     count = 0
+    #     kw_idkf_dict = self.get_tf_idkf()
+    #     for w, s in sorted(kw_idkf_dict.items(), key=(lambda item: item[1]), reverse=True):
+    #         if w in word_set:
+    #             filtered_kw.add(w)
+    #             count += 1
+    #         if count == num_keywords:
+    #             break
+    #     return filtered_kw
 
 
 class KeyBertEmbeddingExtractor(KeywordExtractor):

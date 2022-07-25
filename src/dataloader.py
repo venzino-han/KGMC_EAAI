@@ -90,15 +90,6 @@ def subgraph_extraction_labeling(u_node_idx, i_node_idx, graph,
     # mask target edge label
     subgraph.edata['label'][target_edges.to(th.long)] = 0.0
 
-    # timestamp normalization
-    # compute ts diff from target edge & min-max normalization
-    # n = subgraph.edata['ts'].shape[0]
-    # timestamps = subgraph.edata['ts'][:n//2]
-    # standard_ts = timestamps[target_edges.to(th.long)[0]]
-    # timestamps = th.abs(timestamps - standard_ts.item())
-    # timestamps = 1 - (timestamps - th.min(timestamps)) / (th.max(timestamps)-th.min(timestamps) + 1e-5)
-    # subgraph.edata['ts'] = th.cat([timestamps, timestamps], dim=0) + 1e-5
-
     return subgraph    
 
 
@@ -118,7 +109,7 @@ class UserItemDataset(th.utils.data.Dataset):
         self.pairs = user_item_graph.user_item_pairs
         self.pairs_set = set([ (p[0].item(), p[1].item()) for p in self.pairs])
 
-        self.keyword_edge_k = keyword_edge_k
+        self.min_count = keyword_edge_k
         self.keyword_edge_cooc_matrix = keyword_edge_cooc_matrix
         self.additional_feature = additional_feature
 
@@ -151,9 +142,6 @@ class UserItemDataset(th.utils.data.Dataset):
 
             feature_vector = np.concatenate([u_vector, i_vector], axis=0)
             n = subgraph.number_of_nodes()
-            # print(feature_vector.shape)
-            # print(np.tile(feature_vector, (n,1)).shape)
-            # subgraph.ndata['embedding'] = th.tensor(np.tile(feature_vector, (n,1)))
             return subgraph, feature_vector, g_label
         
         return subgraph, g_label
@@ -196,7 +184,7 @@ class UserItemDataset(th.utils.data.Dataset):
     #     keyword_subg.edata['keywords'] = th.tensor([e for x in zip(*[norm_keyword_cooc_counts]*2) for e in x], dtype=th.float32)
     #     return dgl.add_self_loop(keyword_subg)
 
-    def _add_keyword_normalized_edge(self, subg, min_count=5, max_count=100):
+    def _add_keyword_normalized_edge(self, subg, max_count=100):
         oid_nid_dict = {}
         for new_id, original_id in zip(subg.nodes().tolist(), subg.ndata['_ID'].tolist()):
             oid_nid_dict[original_id] = new_id
@@ -210,7 +198,7 @@ class UserItemDataset(th.utils.data.Dataset):
             if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
                 continue
             k_count = self.keyword_edge_cooc_matrix[i,j]
-            if k_count > min_count:
+            if k_count > self.min_count:
                 additional_edges.append((i,j))
                 if k_count > max_count:
                     k_count = max_count
@@ -224,7 +212,7 @@ class UserItemDataset(th.utils.data.Dataset):
             src += [oid_nid_dict[i], oid_nid_dict[j]]
             dst += [oid_nid_dict[j], oid_nid_dict[i]]
 
-        norm_keyword_cooc_counts = np.array(keyword_cooc_counts)/max(keyword_cooc_counts)
+        norm_keyword_cooc_counts = (np.array(keyword_cooc_counts)-self.min_count)/max_count
         n_edges = len(keyword_cooc_counts)
         edata={
             'etype': th.tensor([0]*n_edges, dtype=th.int32),
@@ -243,16 +231,13 @@ class UserItemDataset(th.utils.data.Dataset):
         edata={
             'etype':th.tensor([0], dtype=th.int32),
             'edge_mask':th.tensor([1], dtype=th.int32),
-            # 'ts':th.tensor([1.]),
             'label':th.tensor([1.]),
         }
         pairs = list(combinations(nids, 2))
         for i, j in pairs:
-            # edge_not_exist = ((i,j) not in self.pairs_set and (j,i) not in self.pairs_set)
             if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
                 continue
-            edge_not_exist = True
-            if self.keyword_edge_cooc_matrix[i,j] > self.keyword_edge_k and edge_not_exist:
+            if self.keyword_edge_cooc_matrix[i,j] > self.min_count:
                 subg.add_edges(oid_nid_dict[i], oid_nid_dict[j], data=edata)
                 subg.add_edges(oid_nid_dict[j], oid_nid_dict[i], data=edata)
                 
