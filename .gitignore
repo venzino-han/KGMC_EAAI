@@ -4,3 +4,5 @@ __pycache__
 *.log
 *.pt
 *.npy
+*keywords.csv
+*train_add.csv

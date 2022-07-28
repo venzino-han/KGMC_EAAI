@@ -31,5 +31,10 @@ files:
   # - ./train_configs/igmc_bert_sports.yaml
   # - ./train_configs/igmc_bert_toy.yaml
 
-  - ./train_configs/kgmc_keybert_ttf_idkf.yaml
+  # - ./train_configs/kgmc_keybert_ttf_idkf.yaml
+  # - ./train_configs/kgmc_keybert_ttf.yaml
+  # - ./train_configs/kgmc_keybert_ttf20.yaml
+  # - ./train_configs/kgmc_keybert_testdoc.yaml
+  # - ./train_configs/kgmc_keybert.yaml
+  - ./train_configs/kgmc_lda_cossim.yaml
 

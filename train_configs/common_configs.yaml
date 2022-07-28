@@ -13,10 +13,10 @@ model:
     - 32
   num_heads: 4
   num_relations: 6
-  edge_dropout: 0.3
+  edge_dropout: 0.5
   
 dataset:
-  keyword_edge_k: 24
+  keyword_edge_k: 5
 
 train:
   device: 0

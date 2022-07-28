@@ -202,6 +202,7 @@ def main():
         files = yaml.load(f, Loader=yaml.FullLoader)
     file_list = files['files']
     for f in file_list:
+        date_time = datetime.now().strftime("%Y%m%d_%H:%M:%S")
         args = get_args_from_yaml(f)
         logger = get_logger(name=args.key, path=f"{args.log_dir}/{args.key}.log")
         logger.info('train args')
@@ -227,8 +228,7 @@ def main():
             for dataset, results in test_results.items():
                 mean_std_dict[dataset] = [f'{np.mean(results):.4f} ± {np.std(results):.5f}']
             mean_std_df = pd.DataFrame(mean_std_dict)
-            date_time = datetime.now().strftime("%Y%m%d_%H:%M:%S")
-            mean_std_df.to_csv(f'./results/{args.key}_{date_time}')
+            mean_std_df.to_csv(f'./results/{args.key}_{date_time}.csv')
         
 if __name__ == '__main__':
     main()

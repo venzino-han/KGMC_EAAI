@@ -29,8 +29,8 @@ class UserItemGraph(object):
         self.item_col = item_col
         self.text_col = text_col
 
-        self._num_user = len(df[user_col].unique())
-        self._num_item = len(df[item_col].unique())
+        self._num_user = max(df[user_col].unique()) + 1 #len(df[user_col].unique())
+        self._num_item = max(df[item_col].unique()) + 1 #len(df[item_col].unique())
         self._num_label = len(df[label_col].unique())
         
         # vid = vid + max(uid) + 1   
