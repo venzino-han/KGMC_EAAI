@@ -212,7 +212,9 @@ class UserItemDataset(th.utils.data.Dataset):
             if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
                 continue
             cos_sim = self.keyword_edge_cooc_matrix[i,j]
-            keyword_cos_sim += [cos_sim, cos_sim]
+            if cos_sim > 0.3:
+                additional_edges.append((i,j))
+                keyword_cos_sim += [cos_sim, cos_sim]
 
         if len(keyword_cos_sim) == 0:
             return subg
@@ -226,6 +228,7 @@ class UserItemDataset(th.utils.data.Dataset):
             dst += [oid_nid_dict[j], oid_nid_dict[i]]
 
         n_edges = len(keyword_cos_sim)
+        # print(n_edges)
         edata={
             'etype': th.tensor(np.array(etypes), dtype=th.int32),
             'label': th.tensor(np.array([1.]*n_edges), dtype=th.float32),
