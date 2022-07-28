@@ -100,7 +100,7 @@ def subgraph_extraction_labeling(u_node_idx, i_node_idx, graph,
 
 class UserItemDataset(th.utils.data.Dataset):
     def __init__(self, user_item_graph: UserItemGraph,
-                 keyword_edge_k=12, keyword_edge_cooc_matrix=None,
+                 keyword_edge_k=5, keyword_edge_cooc_matrix=None,
                  additional_feature=None,
                  hop=1, sample_ratio=1.0, max_nodes_per_hop=100):
 
@@ -130,7 +130,8 @@ class UserItemDataset(th.utils.data.Dataset):
         
         g_label = self.g_labels[idx]
         if self.keyword_edge_cooc_matrix is not None:
-            subgraph = self._add_keyword_normalized_edge(subgraph)
+            # subgraph = self._add_keyword_normalized_edge(subgraph)
+            subgraph = self._add_keyword_cosin_sim_edge(subgraph)
 
         if self.additional_feature is not None:
             try:
@@ -145,6 +146,114 @@ class UserItemDataset(th.utils.data.Dataset):
             return subgraph, feature_vector, g_label
         
         return subgraph, g_label
+
+    def _get_etype(self, i_ntype, j_ntype, ntypes):
+        if (i_ntype[0] == 1 and j_ntype[1] == 1) or (j_ntype[0] == 1 and i_ntype[1] == 1):
+            return 0
+        elif (i_ntype[2] == 1 and j_ntype[3] == 1) or (j_ntype[2] == 1 and i_ntype[3] == 1):
+            return 6
+        else:
+            return 7
+
+    def _add_keyword_normalized_edge(self, subg, max_count=100):
+        oid_nid_dict = {}
+        for new_id, original_id in zip(subg.nodes().tolist(), subg.ndata['_ID'].tolist()):
+            oid_nid_dict[original_id] = new_id
+
+        nids = subg.ndata['node_id'].tolist()
+        ntypes = subg.ndata['x']
+
+        pairs = list(combinations(nids, 2))
+        additional_edges = []
+        keyword_cooc_counts = []
+        for i, j in pairs:
+            if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
+                continue
+            k_count = self.keyword_edge_cooc_matrix[i,j]
+            if k_count > self.min_count:
+                additional_edges.append((i,j))
+                if k_count > max_count:
+                    k_count = max_count
+                keyword_cooc_counts += [k_count, k_count]
+
+        if len(keyword_cooc_counts) == 0:
+            return subg
+
+        src, dst, etypes = [], [], [] 
+        for i,j in additional_edges:
+            i_ntype, j_ntype = ntypes[oid_nid_dict[i]], ntypes[oid_nid_dict[j]]
+            e = self._get_etype(i_ntype, j_ntype, ntypes)
+            etypes += [e, e]
+            src += [oid_nid_dict[i], oid_nid_dict[j]]
+            dst += [oid_nid_dict[j], oid_nid_dict[i]]
+
+        norm_keyword_cooc_counts = (np.array(keyword_cooc_counts)-self.min_count)/max_count
+        n_edges = len(keyword_cooc_counts)
+        edata={
+            'etype': th.tensor(np.array(etypes), dtype=th.int32),
+            'label': th.tensor(np.array([1.]*n_edges), dtype=th.float32),
+            'edge_mask': th.tensor(norm_keyword_cooc_counts, dtype=th.float32),
+        }
+        subg.add_edges(src, dst, data=edata)
+        return subg
+    
+    def _add_keyword_cosin_sim_edge(self, subg,):
+        oid_nid_dict = {}
+        for new_id, original_id in zip(subg.nodes().tolist(), subg.ndata['_ID'].tolist()):
+            oid_nid_dict[original_id] = new_id
+
+        nids = subg.ndata['node_id'].tolist()
+        ntypes = subg.ndata['x']
+
+        pairs = list(combinations(nids, 2))
+        additional_edges = []
+        keyword_cos_sim = []
+        for i, j in pairs:
+            if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
+                continue
+            cos_sim = self.keyword_edge_cooc_matrix[i,j]
+            keyword_cos_sim += [cos_sim, cos_sim]
+
+        if len(keyword_cos_sim) == 0:
+            return subg
+
+        src, dst, etypes = [], [], [] 
+        for i,j in additional_edges:
+            i_ntype, j_ntype = ntypes[oid_nid_dict[i]], ntypes[oid_nid_dict[j]]
+            e = self._get_etype(i_ntype, j_ntype, ntypes)
+            etypes += [e, e]
+            src += [oid_nid_dict[i], oid_nid_dict[j]]
+            dst += [oid_nid_dict[j], oid_nid_dict[i]]
+
+        n_edges = len(keyword_cos_sim)
+        edata={
+            'etype': th.tensor(np.array(etypes), dtype=th.int32),
+            'label': th.tensor(np.array([1.]*n_edges), dtype=th.float32),
+            'edge_mask': th.tensor(keyword_cos_sim, dtype=th.float32),
+        }
+        subg.add_edges(src, dst, data=edata)
+        return subg
+
+    def _add_keyword_count_edge(self, subg):
+        oid_nid_dict = {}
+        for new_id, original_id in zip(subg.nodes().tolist(), subg.ndata['_ID'].tolist()):
+            oid_nid_dict[original_id] = new_id
+
+        nids = subg.ndata['node_id'].tolist()
+        edata={
+            'etype':th.tensor([0], dtype=th.int32),
+            'edge_mask':th.tensor([1], dtype=th.int32),
+            'label':th.tensor([1.]),
+        }
+        pairs = list(combinations(nids, 2))
+        for i, j in pairs:
+            if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
+                continue
+            if self.keyword_edge_cooc_matrix[i,j] > self.min_count:
+                subg.add_edges(oid_nid_dict[i], oid_nid_dict[j], data=edata)
+                subg.add_edges(oid_nid_dict[j], oid_nid_dict[i], data=edata)
+                
+        return subg
 
     # def _generate_keyword_graph(self, subg, min_count=5, max_count=100):
     #     oid_nid_dict = {}
@@ -183,65 +292,6 @@ class UserItemDataset(th.utils.data.Dataset):
     #         keyword_subg.ndata[k] = v 
     #     keyword_subg.edata['keywords'] = th.tensor([e for x in zip(*[norm_keyword_cooc_counts]*2) for e in x], dtype=th.float32)
     #     return dgl.add_self_loop(keyword_subg)
-
-    def _add_keyword_normalized_edge(self, subg, max_count=100):
-        oid_nid_dict = {}
-        for new_id, original_id in zip(subg.nodes().tolist(), subg.ndata['_ID'].tolist()):
-            oid_nid_dict[original_id] = new_id
-
-        nids = subg.ndata['node_id'].tolist()
-
-        pairs = list(combinations(nids, 2))
-        additional_edges = []
-        keyword_cooc_counts = []
-        for i, j in pairs:
-            if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
-                continue
-            k_count = self.keyword_edge_cooc_matrix[i,j]
-            if k_count > self.min_count:
-                additional_edges.append((i,j))
-                if k_count > max_count:
-                    k_count = max_count
-                keyword_cooc_counts+= [k_count, k_count]
-
-        if len(keyword_cooc_counts) == 0:
-            return subg
-
-        src, dst = [], [] 
-        for i,j in additional_edges:
-            src += [oid_nid_dict[i], oid_nid_dict[j]]
-            dst += [oid_nid_dict[j], oid_nid_dict[i]]
-
-        norm_keyword_cooc_counts = (np.array(keyword_cooc_counts)-self.min_count)/max_count
-        n_edges = len(keyword_cooc_counts)
-        edata={
-            'etype': th.tensor([0]*n_edges, dtype=th.int32),
-            'label': th.tensor([1.]*n_edges),
-            'edge_mask': th.tensor(norm_keyword_cooc_counts, dtype=th.float32),
-        }
-        subg.add_edges(src, dst, data=edata)
-        return subg
-
-    def _add_keyword_count_edge(self, subg):
-        oid_nid_dict = {}
-        for new_id, original_id in zip(subg.nodes().tolist(), subg.ndata['_ID'].tolist()):
-            oid_nid_dict[original_id] = new_id
-
-        nids = subg.ndata['node_id'].tolist()
-        edata={
-            'etype':th.tensor([0], dtype=th.int32),
-            'edge_mask':th.tensor([1], dtype=th.int32),
-            'label':th.tensor([1.]),
-        }
-        pairs = list(combinations(nids, 2))
-        for i, j in pairs:
-            if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
-                continue
-            if self.keyword_edge_cooc_matrix[i,j] > self.min_count:
-                subg.add_edges(oid_nid_dict[i], oid_nid_dict[j], data=edata)
-                subg.add_edges(oid_nid_dict[j], oid_nid_dict[i], data=edata)
-                
-        return subg
 
 
 

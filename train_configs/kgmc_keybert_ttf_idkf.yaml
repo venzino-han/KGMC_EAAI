@@ -6,7 +6,7 @@ dataset:
   names: 
     # - game
     # - music
-    # - book
+    - book
     - office
     - sports
     # - toy
