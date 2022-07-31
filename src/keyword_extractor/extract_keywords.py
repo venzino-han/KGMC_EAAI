@@ -18,7 +18,7 @@ def get_keyword_cosin_sim_matrix(nid_arr_dict):
     nid_arr_dict = OrderedDict(sorted(nid_arr_dict.items()))
     keyword_matrix = np.array([ item for k, item in nid_arr_dict.items() ])
     node_norm = keyword_matrix.sum(axis=1)
-    nrom_matrix = np.outer(node_norm, node_norm)
+    nrom_matrix = np.sqrt(np.outer(node_norm, node_norm))
     topic_co_occurrence_matrix = np.matmul(keyword_matrix, keyword_matrix.T)
     topic_cosin_sim_matrix = nrom_matrix*topic_co_occurrence_matrix
     return topic_cosin_sim_matrix
@@ -82,20 +82,28 @@ if __name__=='__main__':
         keyword_extractor_class = keyword_extractors.get(keyword_extraction_method)
         keyword_extractor = keyword_extractor_class(docs, n_gram_range=(1,1))
         keyword_extractor.extract_keywords(top_n=5)
-        keywords = keyword_extractor.get_keywords(duplicate_limit=0.1, num_keywords=1024)
+        keywords = keyword_extractor.get_keywords(duplicate_limit=0.3, num_keywords=1024)
         print(list(keywords)[:40])
         kw_df = pd.DataFrame({'keyword':list(keywords)})
         kw_df.to_csv(f'data/{data_name}/{keyword_extraction_method}_keywords.csv') 
         
-        nid_arr_dict = convert_doc_array(item_docs, user_docs, kw_df)
 
+        df = pd.concat([train_df, valid_df, test_df])
+        df = df.dropna()
+        df['item_id'] += max(df.user_id)+1
+
+        item_docs = df.groupby('item_id')['text_clean'].apply(lambda x: ' '.join(x))
+        user_docs = df.groupby('user_id')['text_clean'].apply(lambda x: ' '.join(x))
+        docs = item_docs.to_list() + user_docs.to_list()
+        
+        nid_arr_dict = convert_doc_array(item_docs, user_docs, kw_df)
         # cooc_matrix = get_keyword_co_occurrence_matrix(nid_arr_dict)        
         # with open(f'data/{data_name}/{keyword_extraction_method}_cooc_matrix.npy', 'wb') as f:
         #     np.save(f, cooc_matrix)
 
 
         cooc_matrix = get_keyword_cosin_sim_matrix(nid_arr_dict)
-        with open(f'data/{data_name}/{keyword_extraction_method}_cosin_sim_matrix.npy', 'wb') as f:
+        with open(f'data/{data_name}/{keyword_extraction_method}30_cosin_sim_matrix_test.npy', 'wb') as f:
             np.save(f, cooc_matrix)
 
 
