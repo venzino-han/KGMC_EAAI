@@ -5,6 +5,7 @@ import torch as th
 import pandas as pd
 import numpy as np
 import dgl
+from queue import PriorityQueue
 
 from itertools import combinations
 from user_item_graph import UserItemGraph
@@ -85,11 +86,12 @@ def subgraph_extraction_labeling(u_node_idx, i_node_idx, graph,
     su = subgraph.nodes()[subgraph.ndata[dgl.NID]==u_node_idx]
     si = subgraph.nodes()[subgraph.ndata[dgl.NID]==i_node_idx]
     _, _, target_edges = subgraph.edge_ids([su, si], [si, su], return_uv=True)
-    subgraph.edata['edge_mask'][target_edges.to(th.long)] = 0
+    subgraph.remove_edges(target_edges)
     
     # mask target edge label
-    subgraph.edata['label'][target_edges.to(th.long)] = 0.0
-
+    # subgraph.edata['edge_mask'][target_edges.to(th.long)] = 0
+    # subgraph.edata['label'][target_edges.to(th.long)] = 0.0
+    subgraph = dgl.add_self_loop(subgraph)
     return subgraph    
 
 
@@ -130,8 +132,8 @@ class UserItemDataset(th.utils.data.Dataset):
         
         g_label = self.g_labels[idx]
         if self.keyword_edge_cooc_matrix is not None:
-            # subgraph = self._add_keyword_normalized_edge(subgraph)
-            subgraph = self._add_keyword_cosin_sim_edge(subgraph)
+            subgraph = self._add_keyword_normalized_edge(subgraph)
+            # subgraph = self._add_keyword_cosin_sim_edge(subgraph)
 
         if self.additional_feature is not None:
             try:
@@ -164,35 +166,42 @@ class UserItemDataset(th.utils.data.Dataset):
         ntypes = subg.ndata['x']
 
         pairs = list(combinations(nids, 2))
-        additional_edges = []
-        keyword_cooc_counts = []
+        additional_edges_que = PriorityQueue()
         for i, j in pairs:
             if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
                 continue
             k_count = self.keyword_edge_cooc_matrix[i,j]
             if k_count > self.min_count:
-                additional_edges.append((i,j))
                 if k_count > max_count:
                     k_count = max_count
-                keyword_cooc_counts += [k_count, k_count]
+                additional_edges_que.put((-k_count, (i,j)))
 
-        if len(keyword_cooc_counts) == 0:
+        if additional_edges_que.empty() == True:
             return subg
-
-        src, dst, etypes = [], [], [] 
-        for i,j in additional_edges:
+        
+        src, dst, etypes, keyword_cooc_counts = [], [], [], []
+        n = subg.number_of_edges()//4
+        for k in range(additional_edges_que.qsize()):
+            if k > n :
+                break
+            neg_count, (i, j) = additional_edges_que.get()
+            cooc_count = -neg_count
             i_ntype, j_ntype = ntypes[oid_nid_dict[i]], ntypes[oid_nid_dict[j]]
             e = self._get_etype(i_ntype, j_ntype, ntypes)
-            etypes += [e, e]
+            e_vec = [0]*8
+            e_vec[e] = 1 
+            etypes += [e_vec, e_vec]
+            keyword_cooc_counts += [cooc_count, cooc_count]
             src += [oid_nid_dict[i], oid_nid_dict[j]]
             dst += [oid_nid_dict[j], oid_nid_dict[i]]
 
         norm_keyword_cooc_counts = (np.array(keyword_cooc_counts)-self.min_count)/max_count
+        norm_keyword_cooc_counts = np.tile(norm_keyword_cooc_counts, (8,1)).T
         n_edges = len(keyword_cooc_counts)
         edata={
-            'etype': th.tensor(np.array(etypes), dtype=th.int32),
+            'etype_vect': th.tensor(np.array(etypes)*norm_keyword_cooc_counts, dtype=th.float32),
             'label': th.tensor(np.array([1.]*n_edges), dtype=th.float32),
-            'edge_mask': th.tensor(norm_keyword_cooc_counts, dtype=th.float32),
+            # 'edge_mask': th.tensor(norm_keyword_cooc_counts, dtype=th.float32),
         }
         subg.add_edges(src, dst, data=edata)
         return subg
@@ -206,31 +215,36 @@ class UserItemDataset(th.utils.data.Dataset):
         ntypes = subg.ndata['x']
 
         pairs = list(combinations(nids, 2))
-        additional_edges = []
-        keyword_cos_sim = []
+        additional_edges_que = PriorityQueue()
         for i, j in pairs:
             if i>=len(self.keyword_edge_cooc_matrix) or j>=len(self.keyword_edge_cooc_matrix):
                 continue
             cos_sim = self.keyword_edge_cooc_matrix[i,j]
-            if cos_sim > 0.3:
-                additional_edges.append((i,j))
-                keyword_cos_sim += [cos_sim, cos_sim]
+            if cos_sim > 0.5:
+                additional_edges_que.put((-cos_sim, (i,j)))
 
-        if len(keyword_cos_sim) == 0:
+        src, dst, etypes, keyword_cos_sim = [], [], [], []
+        n = subg.number_of_edges()//10
+        if additional_edges_que.empty() == True:
             return subg
 
-        src, dst, etypes = [], [], [] 
-        for i,j in additional_edges:
-            i_ntype, j_ntype = ntypes[oid_nid_dict[i]], ntypes[oid_nid_dict[j]]
-            e = self._get_etype(i_ntype, j_ntype, ntypes)
-            etypes += [e, e]
+        for k in range(additional_edges_que.qsize()):
+            if k > n :
+                break
+            neg_cos_sim, (i, j) = additional_edges_que.get()
+            cos_sim = -neg_cos_sim
+            # i_ntype, j_ntype = ntypes[oid_nid_dict[i]], ntypes[oid_nid_dict[j]]
+            # e = self._get_etype(i_ntype, j_ntype, ntypes)
+            # etypes += [e, e]
+            keyword_cos_sim += [cos_sim, cos_sim]
             src += [oid_nid_dict[i], oid_nid_dict[j]]
             dst += [oid_nid_dict[j], oid_nid_dict[i]]
 
         n_edges = len(keyword_cos_sim)
         # print(n_edges)
         edata={
-            'etype': th.tensor(np.array(etypes), dtype=th.int32),
+            # 'etype': th.tensor(np.array(etypes), dtype=th.int32),
+            'etype': th.tensor(np.array([0]*n_edges), dtype=th.int32),
             'label': th.tensor(np.array([1.]*n_edges), dtype=th.float32),
             'edge_mask': th.tensor(keyword_cos_sim, dtype=th.float32),
         }

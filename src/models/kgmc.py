@@ -27,16 +27,28 @@ class KGMC(nn.Module):
         self.side_features = side_features
         self.multiply_by = multiply_by
 
-        self.egat_conv = EGATConv(in_node_feats=in_feats, in_edge_feats=1, 
-                                  out_node_feats=in_feats, out_edge_feats=1,
-                                  num_heads=2, 
-                                 )
-        self.convs = th.nn.ModuleList()
-        self.convs.append(gconv(in_feats, latent_dim[1], num_relations, num_bases=num_bases, self_loop=True,))
-        for i in range(1, len(latent_dim)-1):
-            self.convs.append(gconv(latent_dim[i], latent_dim[i+1], num_relations, num_bases=num_bases, self_loop=True,))
-        
-        self.lin1 = nn.Linear(2 * sum(latent_dim[1:]), 128)
+        self.egat_conv_0 = EGATConv(in_node_feats=in_feats, in_edge_feats=8, 
+                                    out_node_feats=latent_dim[0], out_edge_feats=8,
+                                    num_heads=4, 
+                                    )
+        self.egat_conv_1 = EGATConv(in_node_feats=latent_dim[0], in_edge_feats=8, 
+                                    out_node_feats=latent_dim[1], out_edge_feats=8,
+                                    num_heads=4, 
+                                    )
+        self.egat_conv_2 = EGATConv(in_node_feats=latent_dim[1], in_edge_feats=8, 
+                                    out_node_feats=latent_dim[2], out_edge_feats=8,
+                                    num_heads=4, 
+                                    )
+        self.egat_conv_3 = EGATConv(in_node_feats=latent_dim[2], in_edge_feats=8, 
+                                    out_node_feats=latent_dim[3], out_edge_feats=8,
+                                    num_heads=4, 
+                                    )
+        # self.convs = th.nn.ModuleList()
+        # self.convs.append(gconv(in_feats, latent_dim[1], num_relations, num_bases=num_bases, self_loop=True,))
+        # for i in range(1, len(latent_dim)-1):
+        #     self.convs.append(gconv(latent_dim[i], latent_dim[i+1], num_relations, num_bases=num_bases, self_loop=True,))
+        self.leakyrelu = th.nn.LeakyReLU()
+        self.lin1 = nn.Linear(2 * sum(latent_dim), 128)
         if self.regression:
             self.lin2 = nn.Linear(128, 1)
         else:
@@ -50,22 +62,39 @@ class KGMC(nn.Module):
         self.lin2.reset_parameters()
 
     # @profile
-    def forward(self, subg, keyword_subg):
+    def forward(self, subg):
         # print(subg)
         # print(keyword_subg)
         subg = edge_drop(subg, self.edge_dropout, self.training)
 
         concat_states = []
         x = subg.ndata['x'].type(th.float32)
-        kfeats = subg.edata.get('keywords', None)
-        if kfeats is not None:
-            x, _ = self.egat_conv(keyword_subg, x, efeats=kfeats,)
-            x = th.tahn(x)
-        for conv in self.convs:
-            # edge mask zero denotes the edge dropped
-            x = th.tanh(conv(subg, x, subg.edata['etype'], 
-                             norm=subg.edata['edge_mask'].unsqueeze(1)))
-            concat_states.append(x)
+        e = subg.edata['etype_vect']
+        
+        # print(e.shape)
+        x, _ = self.egat_conv_0(subg, x, efeats=e,)
+        x = th.sum(x, dim=1)
+        x = self.leakyrelu(x)
+        # e = th.sum(e, dim=1)
+        # e = self.leakyrelu(e)
+        # print(e.shape)
+        concat_states.append(x)
+        x, _ = self.egat_conv_1(subg, x, efeats=e,)
+        x = th.sum(x, dim=1)
+        x = self.leakyrelu(x)
+        # e = th.sum(e, dim=1)
+        # e = self.leakyrelu(e)
+        concat_states.append(x)
+        x, _ = self.egat_conv_2(subg, x, efeats=e,)
+        x = th.sum(x, dim=1)
+        x = self.leakyrelu(x)
+        # e = th.sum(e, dim=1)
+        # e = self.leakyrelu(e)
+        concat_states.append(x)
+        x, _ = self.egat_conv_3(subg, x, efeats=e,)
+        x = th.sum(x, dim=1)
+        x = self.leakyrelu(x)
+        concat_states.append(x)
         concat_states = th.cat(concat_states, 1)
         
         users = subg.ndata['nlabel'][:, 0] == 1

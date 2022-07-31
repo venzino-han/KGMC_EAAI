@@ -66,7 +66,11 @@ if __name__=='__main__':
     }
 
     keyword_extraction_method='keybert'
-    for data_name in ['game', 'music', 'book', 'office', 'sports', 'toy']:
+    for data_name in [
+                    'game', 
+                    # 'music', 'book', 'office', 
+                    # 'sports', 'toy'
+                    ]:
         train_df = pd.read_csv(f'data/{data_name}/{data_name}_train.csv')
         valid_df = pd.read_csv(f'data/{data_name}/{data_name}_valid.csv')
         test_df = pd.read_csv(f'data/{data_name}/{data_name}_test.csv')
@@ -89,14 +93,14 @@ if __name__=='__main__':
         
         nid_arr_dict = convert_doc_array(item_docs, user_docs, kw_df)
 
-        # cooc_matrix = get_keyword_co_occurrence_matrix(nid_arr_dict)        
-        # with open(f'data/{data_name}/{keyword_extraction_method}_cooc_matrix.npy', 'wb') as f:
-        #     np.save(f, cooc_matrix)
-
-
-        cooc_matrix = get_keyword_cosin_sim_matrix(nid_arr_dict)
-        with open(f'data/{data_name}/{keyword_extraction_method}_cosin_sim_matrix.npy', 'wb') as f:
+        cooc_matrix = get_keyword_co_occurrence_matrix(nid_arr_dict)        
+        with open(f'data/{data_name}/{keyword_extraction_method}_cooc_matrix.npy', 'wb') as f:
             np.save(f, cooc_matrix)
+
+
+        # cooc_matrix = get_keyword_cosin_sim_matrix(nid_arr_dict)
+        # with open(f'data/{data_name}/{keyword_extraction_method}_cossim_matrix.npy', 'wb') as f:
+        #     np.save(f, cooc_matrix)
 
 
         # Extract Bert embeddings
