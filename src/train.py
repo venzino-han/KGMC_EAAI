@@ -37,9 +37,8 @@ def train_epoch(model, loss_fn, optimizer, loader, device, logger, log_interval,
             preds = model(inputs, vectors)
         elif train_model == 'KGMC':
             inputs = batch[0].to(device)
-            keywords = batch[1].to(device)
-            labels = batch[2].to(device)
-            preds = model(inputs, keywords)
+            labels = batch[1].to(device)
+            preds = model(inputs)
         else:
             inputs = batch[0].to(device)
             labels = batch[1].to(device)
@@ -160,7 +159,7 @@ def train(args:EasyDict, logger):
     epochs = list(range(1, args.train_epochs+1))
 
     eval_func_map = {
-        'KGMC': feature_evaluate,
+        'KGMC': evaluate,
         'IGMC_BERT': feature_evaluate,
         'IGMC': evaluate,
     }

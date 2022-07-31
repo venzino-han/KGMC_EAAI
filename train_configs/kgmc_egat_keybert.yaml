@@ -1,11 +1,11 @@
 ---
-key: kgmc_lda_128_cooc
+key: kgmc_egat_keybert
 model:
-  type: IGMC
+  type: KGMC
   num_relations: 8
 
 dataset:
-  keyword_edge_k: 1
+  keyword_edge_k: 10
   names: 
     - music
     - game
@@ -14,7 +14,7 @@ dataset:
     - book
     - toy
     - office
-  keywords: lda_topic128_cooc_matrix.npy
+  keywords: keybert_cooc_matrix.npy
 
 train:
   device: 0

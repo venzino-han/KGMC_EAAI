@@ -19,7 +19,7 @@ def sent_to_words(sentences):
         # deacc=True removes punctuations
         yield(gensim.utils.simple_preprocess(str(sentence), deacc=True))
 
-NUM_TOPICS = 32
+NUM_TOPICS = 128
 th = 0.3
 
 
@@ -29,7 +29,7 @@ def get_topic_co_occurrence_matrix(node_topic_array):
 
 def get_topic_cosin_sim_matrix(node_topic_array):
     node_norm = node_topic_array.sum(axis=1)
-    nrom_matrix = np.outer(node_norm, node_norm)
+    nrom_matrix = np.sqrt(np.outer(node_norm, node_norm))
     topic_co_occurrence_matrix = np.matmul(node_topic_array, node_topic_array.T)
     topic_cosin_sim_matrix = nrom_matrix*topic_co_occurrence_matrix
     return topic_cosin_sim_matrix
@@ -89,10 +89,10 @@ if __name__=='__main__':
                 if prob > th:
                     topic_vectors[i,t] = 1
         
-        # topic_cosin_sim_matrix = get_topic_cosin_sim_matrix(topic_vectors)
-        # with open(f'data/{data_name}/lda_topic_cosin_sim_matrix.npy', 'wb') as f:
-        #     np.save(f, topic_cosin_sim_matrix)
+        topic_cosin_sim_matrix = get_topic_cosin_sim_matrix(topic_vectors)
+        with open(f'data/{data_name}/lda_topic{NUM_TOPICS}_cossim_matrix.npy', 'wb') as f:
+            np.save(f, topic_cosin_sim_matrix)
 
-        topic_cooc_matrix = get_topic_co_occurrence_matrix(topic_vectors)
-        with open(f'data/{data_name}/lda_topic_cooc_matrix.npy', 'wb') as f:
-            np.save(f, topic_cooc_matrix)
+        # topic_cooc_matrix = get_topic_co_occurrence_matrix(topic_vectors)
+        # with open(f'data/{data_name}/lda_topic{NUM_TOPICS}_cooc_matrix.npy', 'wb') as f:
+        #     np.save(f, topic_cooc_matrix)

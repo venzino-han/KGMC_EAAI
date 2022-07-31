@@ -9,6 +9,11 @@ import pandas as pd
 import numpy as np
 import scipy.sparse as sp
 
+def one_hot(idx, length):
+    x = [0]*length
+    x[idx] = 1
+    return x
+
 #######################
 # Build graph
 #######################
@@ -37,6 +42,7 @@ class UserItemGraph(object):
         df[item_col] += self._num_user
         u_idx, i_idx, = df[user_col].to_numpy(), df[item_col].to_numpy(), 
         etypes = df[label_col].to_numpy()
+        etypes_vect = np.array([ one_hot(t,8) for t in df[label_col] ])
         labels = (df[label_col].to_numpy() - 1)/4
         # ts = df['ts'].to_numpy()
 
@@ -47,6 +53,7 @@ class UserItemGraph(object):
         dst_nodes = np.concatenate((i_idx, u_idx))
         labels = np.concatenate((labels, labels))
         etypes = np.concatenate((etypes, etypes))
+        etypes_vect = np.concatenate((etypes_vect, etypes_vect))
         # ts = np.concatenate((ts, ts))
 
         print('df len ', len(df))
@@ -63,6 +70,7 @@ class UserItemGraph(object):
         self.graph.edata['original_dst_idx'] = th.tensor(dst_nodes, dtype=th.int32)
         self.graph.edata['label'] = th.tensor(labels, dtype=th.float32)
         self.graph.edata['etype'] = th.tensor(etypes, dtype=th.int32)
+        self.graph.edata['etype_vect'] = th.tensor(etypes_vect, dtype=th.float32)
         # self.graph.edata['ts'] = th.tensor(ts, dtype=th.int32)
 
         #extract subgraph pair idx
