@@ -144,7 +144,9 @@ def train(args:EasyDict, logger):
     
     elif args.model_type == 'EGMC':
         pass
-
+    if args.parameters is not None:
+        model.load_state_dict(th.load(f"./parameters/{args.parameters}"))
+        
     loss_fn = nn.MSELoss().to(args.device)
     optimizer = optim.Adam(model.parameters(), lr=args.train_lr, weight_decay=args.weight_decay)
     logger.info("Loading network finished ...\n")
