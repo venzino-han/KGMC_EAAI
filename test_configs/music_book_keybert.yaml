@@ -1,0 +1,9 @@
+---
+key: music_book_keybert_test
+model:
+  parameters: kgmc_book_keybert_0.1888.pt
+  
+dataset:
+  name: book
+  file_name: book
+  keywords: keybert_cooc_matrix_valid.npy

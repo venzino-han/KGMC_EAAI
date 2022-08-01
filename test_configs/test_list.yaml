@@ -1,0 +1,4 @@
+files:
+  # - ./test_configs/music_book_keybert.yaml
+  # - ./test_configs/music_igmc_zeroshot.yaml
+  - ./test_configs/game_kgmc_zeroshot.yaml
