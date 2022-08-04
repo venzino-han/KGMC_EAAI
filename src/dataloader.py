@@ -224,7 +224,7 @@ class UserItemDataset(th.utils.data.Dataset):
                 additional_edges_que.put((-cos_sim, (i,j)))
 
         src, dst, etypes, keyword_cos_sim = [], [], [], []
-        n = subg.number_of_edges()//10
+        n = subg.number_of_edges()//5
         if additional_edges_que.empty() == True:
             return subg
 

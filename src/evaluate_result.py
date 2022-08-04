@@ -11,10 +11,8 @@ from easydict import EasyDict
 
 from utils import get_logger, get_args_from_yaml
 
-from dataset import get_dataloader
-
-from models.egmc import EGMC
-from baselines.igmc import IGMC
+from dataloader import get_dataloader
+from models.igmc import IGMC
 
 def evaluate(model, loader, device):
     # Evaluate RMSE
@@ -53,18 +51,6 @@ def test(args:EasyDict, logger):
                     regression=True, 
                     edge_dropout=args.edge_dropout,
                     )
-
-    elif args.model_type == 'EGMC':
-        model = EGMC(in_nfeats=args.in_nfeats, 
-                           out_nfeats=args.out_nfeats,
-                           in_efeats=args.in_efeats, 
-                           out_efeats=args.out_efeats,
-                           num_heads=args.num_heads,
-                           review=args.review,
-                           rating=args.rating,
-                           timestamp=args.timestamp,
-                           node_features=args.node_features,
-                           )
 
 
     model.load_state_dict(th.load(f"./parameters/{args.parameters}"))

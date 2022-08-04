@@ -1,8 +1,10 @@
 ---
-key: kgmc_egat_keybert
+key: kgmc_egat_keybert_game_ft
 model:
   type: KGMC
   num_relations: 8
+  # parameters: kgmc_egat_keybert_music_0.1176.pt
+  parameters: kgmc_egat_keybert_game_0.2322.pt
 
 dataset:
   keyword_edge_k: 10
@@ -18,13 +20,12 @@ dataset:
 
 train:
   device: 0
-  epochs: 40
+  epochs: 20
   batch_size: 64
   learning_rates:
     - 1e-3
-    # - 1e-3
-    # - 5e-4
-    # - 2e-3
+    - 5e-4
+    - 2e-3
     # - 1e-3
     # - 1e-3
     # - 1e-3

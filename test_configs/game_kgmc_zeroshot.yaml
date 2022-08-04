@@ -3,8 +3,8 @@ key: game_kgmc_zeroshot
 model:
   type: KGMC
   num_relations: 8
-  # parameters: igmc_music_0.1313.pt
-  parameters: kgmc_egat_keybert_game_0.2322.pt
+  parameters: kgmc_egat_keybert_music_0.1176.pt
+  # parameters: kgmc_egat_keybert_game_0.2322.pt
 
 dataset:
   names: 
@@ -14,4 +14,4 @@ dataset:
     - toy
     - book
     - office
-  keywords: keybert_keyword_matrix.npy
+  keywords: keybert_cooc_matrix.npy

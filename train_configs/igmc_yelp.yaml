@@ -1,0 +1,27 @@
+---
+key: igmc_yelp
+model:
+  type: IGMC
+  num_relations: 5
+
+dataset:
+  names: 
+    - yelp
+
+train:
+  device: 0
+  epochs: 20
+  batch_size: 128
+  learning_rates:
+    - 1e-3
+    - 1e-3
+    - 1e-3
+    - 1e-3
+    - 1e-3
+    # - 1e-3
+    # - 5e-4
+    # - 2e-3
+    # - 1e-3
+    # - 1e-3
+    # - 1e-3
+    # - 1e-3

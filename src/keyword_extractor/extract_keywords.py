@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import nltk
+import pickle as pkl
 from collections import OrderedDict, defaultdict
 
 from keyword_extractor import KeyBertExtractor, TFIDFExtractor, TopicRankExtractor, \
@@ -14,6 +15,18 @@ def get_keyword_co_occurrence_matrix(nid_arr_dict):
     
     return  keyword_co_occurrence_matrix
 
+def get_keyword_co_occurrence_dict(nid_arr_dict, user_item_pairs):
+    nid_arr_dict = OrderedDict(sorted(nid_arr_dict.items()))
+    keyword_matrix = np.array([ item for k, item in nid_arr_dict.items() ])
+    keyword_co_occurrence_dict = {}
+    for uid, iid in user_item_pairs:
+        user_matrix = keyword_matrix[uid]
+        item_matrix = keyword_matrix[iid]
+        key = str(uid)+'_'+str(iid)
+        keyword_co_occurrence_dict[key] = np.sum(user_matrix*item_matrix)
+    
+    return  keyword_co_occurrence_dict
+
 def get_keyword_cosin_sim_matrix(nid_arr_dict):
     nid_arr_dict = OrderedDict(sorted(nid_arr_dict.items()))
     keyword_matrix = np.array([ item for k, item in nid_arr_dict.items() ])
@@ -23,7 +36,7 @@ def get_keyword_cosin_sim_matrix(nid_arr_dict):
     topic_cosin_sim_matrix = nrom_matrix*topic_co_occurrence_matrix
     return topic_cosin_sim_matrix
 
-def convert_doc_array(item_docs, user_docs, kw_df):
+def convert_doc_array(item_docs, user_docs, kw_df, large=False):
     
     def get_keyword_vector(text:str, keywords_index_dict:dict):
         n = len(keywords_index_dict)
@@ -67,7 +80,8 @@ if __name__=='__main__':
 
     keyword_extraction_method='keybert'
     for data_name in [
-                    'game', 
+                    'yelp'
+                    # 'game', 
                     # 'music', 'book', 'office', 
                     # 'sports', 'toy'
                     ]:
@@ -86,15 +100,22 @@ if __name__=='__main__':
         keyword_extractor_class = keyword_extractors.get(keyword_extraction_method)
         keyword_extractor = keyword_extractor_class(docs, n_gram_range=(1,1))
         keyword_extractor.extract_keywords(top_n=5)
-        keywords = keyword_extractor.get_keywords(duplicate_limit=0.3, num_keywords=1024)
+        keywords = keyword_extractor.get_keywords(duplicate_limit=0.1, num_keywords=1024)
         print(list(keywords)[:40])
         kw_df = pd.DataFrame({'keyword':list(keywords)})
-        kw_df.to_csv(f'data/{data_name}/{keyword_extraction_method}_keywords.csv') 
+        kw_df.to_csv(f'data/{data_name}/{keyword_extraction_method}_keywords.csv')
+
+        user_item_pairs = zip(df.user_id, df.item_id)
+    
+        nid_arr_dict = convert_doc_array(item_docs, user_docs, kw_df, large=True)
         
+        cooc_dict = get_keyword_co_occurrence_dict(nid_arr_dict, user_item_pairs)        
+        with open(f'data/{data_name}/{keyword_extraction_method}_cooc_dict.pkl', 'wb') as f:
+            pkl.dump(cooc_dict, f)
         
-        cooc_matrix = get_keyword_co_occurrence_matrix(nid_arr_dict)        
-        with open(f'data/{data_name}/{keyword_extraction_method}_cooc_matrix.npy', 'wb') as f:
-            np.save(f, cooc_matrix)
+        # cooc_matrix = get_keyword_co_occurrence_matrix(nid_arr_dict)        
+        # with open(f'data/{data_name}/{keyword_extraction_method}_cooc_matrix.npy', 'wb') as f:
+        #     np.save(f, cooc_matrix)
 
 
         # cooc_matrix = get_keyword_cosin_sim_matrix(nid_arr_dict)

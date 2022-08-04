@@ -17,8 +17,8 @@ model:
   edge_dropout: 0.3
   
 dataset:
-  name: music
-  file_name: music
+  names: 
+    - music
 
 train:
   device: 0
