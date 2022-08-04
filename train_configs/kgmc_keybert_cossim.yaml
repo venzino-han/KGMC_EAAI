@@ -1,11 +1,11 @@
 ---
-key: kgmc_lda_128_cossim
+key: kgmc_keybert_cossim
 model:
   type: IGMC
   num_relations: 8
 
 dataset:
-  keyword_edge_k: 1
+  # keyword_edge_k: 20
   names: 
     - music
     - game
@@ -14,7 +14,7 @@ dataset:
     - book
     - toy
     - office
-  keywords: lda_topic128_cooc_matrix.npy
+  keywords: keybert_cossim_matrix.npy
 
 train:
   device: 0

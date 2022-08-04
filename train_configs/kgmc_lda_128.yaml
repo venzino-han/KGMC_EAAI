@@ -1,11 +1,11 @@
 ---
-key: kgmc_lda_128_cossim
+key: kgmc_lda_128
 model:
-  type: IGMC
+  type: KGMC
   num_relations: 8
 
 dataset:
-  keyword_edge_k: 1
+  keyword_edge_k: 20
   names: 
     - music
     - game

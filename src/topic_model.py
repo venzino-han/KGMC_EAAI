@@ -20,7 +20,7 @@ def sent_to_words(sentences):
         yield(gensim.utils.simple_preprocess(str(sentence), deacc=True))
 
 NUM_TOPICS = 128
-th = 0.3
+th = 0.5
 
 
 def get_topic_co_occurrence_matrix(node_topic_array):
@@ -89,10 +89,10 @@ if __name__=='__main__':
                 if prob > th:
                     topic_vectors[i,t] = 1
         
-        topic_cosin_sim_matrix = get_topic_cosin_sim_matrix(topic_vectors)
-        with open(f'data/{data_name}/lda_topic{NUM_TOPICS}_cossim_matrix.npy', 'wb') as f:
-            np.save(f, topic_cosin_sim_matrix)
+        # topic_cosin_sim_matrix = get_topic_cosin_sim_matrix(topic_vectors)
+        # with open(f'data/{data_name}/lda_topic{NUM_TOPICS}_cossim_matrix.npy', 'wb') as f:
+        #     np.save(f, topic_cosin_sim_matrix)
 
-        # topic_cooc_matrix = get_topic_co_occurrence_matrix(topic_vectors)
-        # with open(f'data/{data_name}/lda_topic{NUM_TOPICS}_cooc_matrix.npy', 'wb') as f:
-        #     np.save(f, topic_cooc_matrix)
+        topic_cooc_matrix = get_topic_co_occurrence_matrix(topic_vectors)
+        with open(f'data/{data_name}/lda_topic{NUM_TOPICS}_cooc_matrix.npy', 'wb') as f:
+            np.save(f, topic_cooc_matrix)

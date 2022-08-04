@@ -1,5 +1,5 @@
 ---
-key: kgmc_egat_keybert
+key: kgmc_egat_keybert_yelp
 model:
   type: KGMC
   num_relations: 8
@@ -7,20 +7,18 @@ model:
 dataset:
   keyword_edge_k: 10
   names: 
-    - music
-    - game
-    - office
-    - sports
-    - book
-    - toy
-    - office
-  keywords: keybert_cooc_matrix.npy
+    - yelp
+  keywords: keybert_cooc_dict.pkl
 
 train:
   device: 0
   epochs: 40
-  batch_size: 64
+  batch_size: 128
   learning_rates:
+    - 1e-3
+    - 1e-3
+    - 1e-3
+    - 1e-3
     - 1e-3
     # - 1e-3
     # - 5e-4

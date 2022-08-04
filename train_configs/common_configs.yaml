@@ -24,10 +24,10 @@ train:
   batch_size: 128
   learning_rates:
     - 1e-3
-    - 1e-3
-    - 1e-3
-    - 1e-3
-    - 1e-3
+    # - 1e-3
+    # - 1e-3
+    # - 1e-3
+    # - 1e-3
   weight_decay: 0.0
   lr_decay_step: 5
   lr_decay_factor: 0.90

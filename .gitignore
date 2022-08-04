@@ -6,3 +6,4 @@ __pycache__
 *.npy
 *keywords.csv
 *train_add.csv
+*.pkl

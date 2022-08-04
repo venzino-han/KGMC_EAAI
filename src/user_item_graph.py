@@ -1,4 +1,5 @@
 """build graph with edge features"""
+from collections import defaultdict
 import numpy as np
 import pandas as pd
 import torch as th
@@ -17,8 +18,64 @@ def one_hot(idx, length):
 #######################
 # Build graph
 #######################
+class UserItemGraphData():
+    """
+    Build user-item graph data for training 
+    Bulid edge connection with df
+    only user user-item pairs in range when extracting subgraph
+    """
+    def __init__(self, label_col:str, user_col:str, item_col:str, text_col:str,
+                 df:pd.DataFrame, edge_idx_range:tuple,
+                 ):
+        df = df.copy()
+        df['etype'] = df[label_col]
+        self._num_user = max(df[user_col].unique()) + 1
+        self._num_item = max(df[item_col].unique()) + 1
+        self._num_label = len(df[label_col].unique())
+        
+        df[item_col] += self._num_user
+        self.u_idx_arr, self.i_idx_arr, = df[user_col].to_numpy(), df[item_col].to_numpy(), 
+        self.etypes = df[label_col].to_numpy()
+        # self.etypes_vect = np.array([ one_hot(t,8) for t in df[label_col] ])
+        # self.labels = (df[label_col].to_numpy() - 1)/4
+        self.num_nodes = self._num_user + self._num_item
 
-class UserItemGraph(object):
+        print('pairs ', len(df))
+        print('nodes ', self.num_nodes)
+
+        # self.ndata = {}
+        # self.edata = {}
+        # self.ndata['node_id'] = th.tensor(list(range(self.num_nodes)), dtype=th.int32)
+        # self.edata['label'] = th.tensor(self.labels, dtype=th.float32)
+        # self.edata['etype'] = th.tensor(self.etypes, dtype=th.int32)
+        # self.edata['etype_vect'] = th.tensor(self.etypes_vect, dtype=th.float32)
+        
+        #extract subgraph pair idx
+        start, end = edge_idx_range
+        self.target_user_indices = th.tensor(self.u_idx_arr[start:end], dtype=th.int32)
+        self.target_item_indices = th.tensor(self.i_idx_arr[start:end], dtype=th.int32)
+        self.target_labels = th.tensor(self.labels[start:end], dtype=th.float32)
+        self.target_user_item_pairs = self._get_user_item_pairs()
+
+        self.nid_neghibor_dict = defaultdict(list)
+        self.nid_neghibor_rating_dict = defaultdict(list)
+        for u, i, r in zip(*(self.u_idx_arr, self.i_idx_arr, self.etypes)):
+            self.nid_neghibor_dict[i].append(u)
+            self.nid_neghibor_dict[u].append(i)
+            self.nid_neghibor_rating_dict[i].append(r)
+            self.nid_neghibor_rating_dict[u].append(r)
+
+    def _get_user_item_pairs(self):
+        pairs = []
+        for u, i in zip(self.user_indices, self.item_indices):
+            pairs.append((u,i))
+        return pairs
+
+
+#######################
+# Build graph
+#######################
+class UserItemGraph():
     """
     Build user-item graph for training 
     Bulid Homogeneous graph with df
@@ -28,23 +85,20 @@ class UserItemGraph(object):
                  df:pd.DataFrame, edge_idx_range:tuple,
                  ):
         df = df.copy()
-        df['etype'] = df[label_col]
+        # df['etype'] = df[label_col]
+        # self.user_col = user_col
+        # self.item_col = item_col
+        # self.text_col = text_col
 
-        self.user_col = user_col
-        self.item_col = item_col
-        self.text_col = text_col
-
-        self._num_user = max(df[user_col].unique()) + 1 #len(df[user_col].unique())
-        self._num_item = max(df[item_col].unique()) + 1 #len(df[item_col].unique())
+        self._num_user = max(df[user_col].unique()) + 1
+        self._num_item = max(df[item_col].unique()) + 1
         self._num_label = len(df[label_col].unique())
         
-        # vid = vid + max(uid) + 1   
         df[item_col] += self._num_user
         u_idx, i_idx, = df[user_col].to_numpy(), df[item_col].to_numpy(), 
         etypes = df[label_col].to_numpy()
         etypes_vect = np.array([ one_hot(t,8) for t in df[label_col] ])
         labels = (df[label_col].to_numpy() - 1)/4
-        # ts = df['ts'].to_numpy()
 
         # use whole data to build main graph
         # add bidirect edges
@@ -80,6 +134,14 @@ class UserItemGraph(object):
         self.labels = th.tensor(labels[start:end], dtype=th.float32)
 
         self.user_item_pairs = self.get_user_item_pairs()
+        nid_neghibor_dict = defaultdict(list)
+        for u, i in zip(u_idx, i_idx):
+            nid_neghibor_dict[i].append(u)
+            nid_neghibor_dict[u].append(i)
+        
+        self.nid_neghibor_dict = dict()
+        for k, v in nid_neghibor_dict.items():
+            self.nid_neghibor_dict[k] = th.tensor(v)
 
     def get_user_item_pairs(self):
         pairs = []

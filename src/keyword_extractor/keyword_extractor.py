@@ -14,8 +14,8 @@ class KeywordExtractor:
     def __init__(self, docs, n_gram_range=(1, 1)) -> None:
         self.n_gram_range = n_gram_range
         self.docs = docs
-        self.tf = self.get_tf()
-        self.word_count_df = pd.DataFrame({'count':(self.tf > 0).sum().sort_values()})
+        # self.tf = self.get_tf()
+        # self.word_count_df = pd.DataFrame({'count':(self.tf > 0).sum().sort_values()})
 
     def get_tf(self,):
         self.vect = CountVectorizer(ngram_range=self.n_gram_range,)
@@ -27,7 +27,11 @@ class KeywordExtractor:
         raise NotImplementedError("extract_keywords 메소드를 구현하여야 합니다.")
 
     def get_keywords(self, duplicate_limit=0.1, num_keywords=512) -> set:
-        word_set = set(self.word_count_df.query('count>1').query(f'count<{duplicate_limit*len(self.docs)}').index.tolist())
+        # word_set = set(self.word_count_df.query('count>1').query(f'count<{duplicate_limit*len(self.docs)}').index.tolist())
+        word_set = set()
+        for kw, count in self.keywords.items():
+            if count <= duplicate_limit*len(self.docs):
+                word_set.add(kw)    
         filtered_kw = set()
         count = 0
         for w, s in sorted(self.keywords.items(), key=(lambda item: item[1]), reverse=True):

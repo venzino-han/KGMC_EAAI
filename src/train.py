@@ -3,6 +3,7 @@ import math, copy
 import dgl
 import pandas as pd
 import numpy as np
+import pickle as pkl
 
 import torch as th
 import torch.nn as nn
@@ -12,7 +13,8 @@ import time
 from easydict import EasyDict
 
 from utils import get_logger, get_args_from_yaml, evaluate, feature_evaluate
-from dataloader import get_graphs, get_dataloader
+# from dataloader import get_graphs, get_dataloader
+from dataloader_v2 import get_graphs, get_dataloader
 
 from models.kgmc import KGMC
 from models.igmc import IGMC
@@ -71,9 +73,12 @@ def train(args:EasyDict, logger):
     dgl.random.seed(0)
 
     data_path = f'data/{args.data_name}/{args.data_name}'
-    if args.keywords is not None:
+    if args.keywords is not None and args.keywords.endswith('.npy'):
         with open(f'data/{args.data_name}/{args.keywords}', 'rb') as f:
             keyword_edge_matrix = np.load(f)
+    elif args.keywords is not None and args.keywords.endswith('.pkl'):
+        with open(f'data/{args.data_name}/{args.keywords}', 'rb') as f:
+            keyword_edge_matrix = pkl.load(f)
     else:
         keyword_edge_matrix = None
 
