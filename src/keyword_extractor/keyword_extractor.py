@@ -72,15 +72,27 @@ class TFIDFExtractor(KeywordExtractor):
         return results
 
     def extract_keywords(self, top_n=5) -> None:
-        kws = defaultdict(int)
+        # kws = defaultdict(list)
+        doc_id = 0
+        doc_ids = []
+        doc_kwds = []
         for doc in tqdm(self.docs):
             tf_idf_vector = self.vectorizer.transform([doc])
             sorted_items=self._sort_coo(tf_idf_vector.tocoo())
             keywords=self._extract_topn_from_vector(self.feature_names, sorted_items, top_n)
+            doc_kwd = []
             for kw, s in keywords.items():
-                kws[kw] += s     
-        self.keywords = kws 
+                # kws[kw] += s
+                doc_kwd.append(kw)
+            doc_kwds.append(doc_kwd)
+            doc_ids.append(doc_id)
+            doc_id+=1
 
+        # self.keywords = kws 
+        return pd.DataFrame({
+            'doc_id' : doc_ids,
+            'keywords' : doc_kwds
+        })
         
 class TopicRankExtractor(KeywordExtractor):
     def extract_keywords(self, top_n=5):
