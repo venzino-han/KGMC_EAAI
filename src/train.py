@@ -217,24 +217,24 @@ def main():
 
         test_results = defaultdict(list)
         best_lr = None
-        for data_name in args.datasets:
-            sub_args = args
-            sub_args['data_name'] = data_name
-            best_rmse_list = []
-            for lr in args.train_lrs:
-                sub_args['train_lr'] = lr
-                best_rmse = train(sub_args, logger=logger)
-                test_results[data_name].append(best_rmse)
-                best_rmse_list.append(best_rmse)
-            
-            logger.info(f"**********The final best testing RMSE is {min(best_rmse_list):.6f} at lr {best_lr}********")
-            logger.info(f"**********The mean testing RMSE is {np.mean(best_rmse_list):.6f}, {np.std(best_rmse_list)} ********")
+        # for data_name in args.dataset:
+        sub_args = args
+        sub_args['data_name'] = args.dataset
+        best_rmse_list = []
+        for lr in args.train_lrs:
+            sub_args['train_lr'] = lr
+            best_rmse = train(sub_args, logger=logger)
+            test_results[args.dataset].append(best_rmse)
+            best_rmse_list.append(best_rmse)
         
-            mean_std_dict = dict()
-            for dataset, results in test_results.items():
-                mean_std_dict[dataset] = [f'{np.mean(results):.4f} ± {np.std(results):.5f}']
-            mean_std_df = pd.DataFrame(mean_std_dict)
-            mean_std_df.to_csv(f'./results/{args.key}_{date_time}.csv')
+        logger.info(f"**********The final best testing RMSE is {min(best_rmse_list):.6f} at lr {best_lr}********")
+        logger.info(f"**********The mean testing RMSE is {np.mean(best_rmse_list):.6f}, {np.std(best_rmse_list)} ********")
+    
+        mean_std_dict = dict()
+        for dataset, results in test_results.items():
+            mean_std_dict[dataset] = [f'{np.mean(results):.4f} ± {np.std(results):.5f}']
+        mean_std_df = pd.DataFrame(mean_std_dict)
+        mean_std_df.to_csv(f'./results/{args.key}_{date_time}.csv')
         
 if __name__ == '__main__':
     main()
