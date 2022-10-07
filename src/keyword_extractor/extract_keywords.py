@@ -82,34 +82,37 @@ if __name__=='__main__':
         'keybert' : KeyBertExtractor,
     }
 
-    keyword_extraction_method='tfidf'
-    for data_name in [
-                    # 'yelp'
-                    'grocery'
-                    # 'game', 
-                    # 'music', 'book', 'office', 
-                    # 'sports', 'toy'
-                    ]:
-        train_df = pd.read_csv(f'data/{data_name}/{data_name}_train.csv')
-        valid_df = pd.read_csv(f'data/{data_name}/{data_name}_valid.csv')
-        # test_df = pd.read_csv(f'data/{data_name}/{data_name}_test.csv')
+    for keyword_extraction_method in ['text_rank','topic_rank']:
+        for data_name in [
+                        'movie',
+                        'yelp',
+                        'grocery',
+                        'epinions',
+                        'games', 
+                        'music', 
+                        'office', 
+                        'sports',
+                        ]:
+            train_df = pd.read_csv(f'data/{data_name}/{data_name}_train.csv')
+            valid_df = pd.read_csv(f'data/{data_name}/{data_name}_valid.csv')
+            # test_df = pd.read_csv(f'data/{data_name}/{data_name}_test.csv')
 
-        df = pd.concat([train_df, valid_df])
-        df = df.dropna()
+            df = pd.concat([train_df, valid_df])
+            # df = df.dropna()
+            
+            review_col = 'review'
+            item_docs = df.groupby('item_id')[review_col].apply(lambda x: ' '.join(x))
+            user_docs = df.groupby('user_id')[review_col].apply(lambda x: ' '.join(x))
 
-        review_col = 'review'
-        item_docs = df.groupby('item_id')[review_col].apply(lambda x: ' '.join(x)).to_list()
-        user_docs = df.groupby('user_id')[review_col].apply(lambda x: ' '.join(x)).to_list()
+            # user_doc
+            keyword_extractor_class = keyword_extractors.get(keyword_extraction_method)
+            keyword_extractor = keyword_extractor_class(user_docs, n_gram_range=(1,1))
+            user_df = keyword_extractor.extract_keywords(top_n=TOP_K)
+            print(user_df[:10])
+            user_df.to_csv(f'data/{data_name}/user_{keyword_extraction_method}_keywords.csv')
 
-        # user_doc
-        keyword_extractor_class = keyword_extractors.get(keyword_extraction_method)
-        keyword_extractor = keyword_extractor_class(user_docs, n_gram_range=(1,1))
-        user_df = keyword_extractor.extract_keywords(top_n=TOP_K)
-        print(user_df[:10])
-        user_df.to_csv(f'data/{data_name}/user_{keyword_extraction_method}_keywords.csv')
-
-        # item_doc
-        keyword_extractor = keyword_extractor_class(item_docs, n_gram_range=(1,1))
-        item_df = keyword_extractor.extract_keywords(top_n=TOP_K)
-        print(item_df[:10])
-        item_df.to_csv(f'data/{data_name}/item_{keyword_extraction_method}_keywords.csv')
+            # item_doc
+            keyword_extractor = keyword_extractor_class(item_docs, n_gram_range=(1,1))
+            item_df = keyword_extractor.extract_keywords(top_n=TOP_K)
+            print(item_df[:10])
+            item_df.to_csv(f'data/{data_name}/item_{keyword_extraction_method}_keywords.csv')

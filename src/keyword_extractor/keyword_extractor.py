@@ -23,8 +23,23 @@ class KeywordExtractor:
         tf = pd.DataFrame(document_term_matrix.toarray(), columns=self.vect.get_feature_names()) 
         return tf
 
-    def extract_keywords(self,):
+    def _extract_doc_keywords(self,):
         raise NotImplementedError("extract_keywords 메소드를 구현하여야 합니다.")
+
+    def extract_keywords(self, top_n=5) -> None:
+        self.top_n = top_n
+        doc_ids = []
+        doc_kwds = []
+        for item in tqdm(self.docs.iteritems()):            
+            doc_id, doc = item
+            doc_kwd = self._extract_doc_keywords(doc)
+            doc_kwds.append(doc_kwd)
+            doc_ids.append(doc_id)
+
+        return pd.DataFrame({
+            'doc_id' : doc_ids,
+            'keywords' : doc_kwds
+        })
 
     def get_keywords(self, duplicate_limit=0.1, num_keywords=512) -> set:
         # word_set = set(self.word_count_df.query('count>1').query(f'count<{duplicate_limit*len(self.docs)}').index.tolist())
@@ -41,6 +56,7 @@ class KeywordExtractor:
             if count == num_keywords:
                 break
         return filtered_kw
+
 
 class TFIDFExtractor(KeywordExtractor):
     def __init__(self, docs, n_gram_range=(1, 1)) -> None:
@@ -71,49 +87,35 @@ class TFIDFExtractor(KeywordExtractor):
         
         return results
 
-    def extract_keywords(self, top_n=5) -> None:
-        # kws = defaultdict(list)
-        doc_id = 0
-        doc_ids = []
-        doc_kwds = []
-        for doc in tqdm(self.docs):
-            tf_idf_vector = self.vectorizer.transform([doc])
-            sorted_items=self._sort_coo(tf_idf_vector.tocoo())
-            keywords=self._extract_topn_from_vector(self.feature_names, sorted_items, top_n)
-            doc_kwd = []
-            for kw, s in keywords.items():
-                # kws[kw] += s
-                doc_kwd.append(kw)
-            doc_kwds.append(doc_kwd)
-            doc_ids.append(doc_id)
-            doc_id+=1
+    def _extract_doc_keywords(self, doc)->str:
+        tf_idf_vector = self.vectorizer.transform([doc])
+        sorted_items=self._sort_coo(tf_idf_vector.tocoo())
+        keywords=self._extract_topn_from_vector(self.feature_names, sorted_items, self.top_n)
+        doc_kwd = ''
+        for kw, s in keywords.items():
+            doc_kwd += kw
+        return doc_kwd
 
-        # self.keywords = kws 
-        return pd.DataFrame({
-            'doc_id' : doc_ids,
-            'keywords' : doc_kwds
-        })
         
 class TopicRankExtractor(KeywordExtractor):
-    def extract_keywords(self, top_n=5):
-        kws = defaultdict(int)
-        for doc in tqdm(self.docs):
-            tr = TopicRank(doc)
-            keywords=tr.get_top_n(n=top_n)
-            for kw in keywords:
-                kws[kw] += 1     
-        self.keywords = kws 
+    def _extract_doc_keywords(self, doc)->str:
+        tr = TopicRank(doc)
+        keywords=tr.get_top_n(n=self.top_n)       
+        doc_kwd = ''
+        for kw, s in keywords.items():
+            doc_kwd += kw
+        return doc_kwd
 
 from summa import keywords
 
 class TextRankExtractor(KeywordExtractor):
-    def extract_keywords(self, top_n=5):
-        kws = defaultdict(int)
-        for doc in tqdm(self.docs):
-            keyword_list=keywords.keywords(doc).split('\n')[:top_n]
-            for kw in keyword_list:
-                kws[kw] += 1     
-        self.keywords = kws 
+
+    def _extract_doc_keywords(self, doc)->str:
+        keyword_list=keywords.keywords(doc).split('\n')[:self.top_n]       
+        doc_kwd = ''
+        for kw in keyword_list:
+            doc_kwd += kw + ' '
+        return doc_kwd
 
 
 class KeyBertExtractor(KeywordExtractor):
@@ -123,41 +125,23 @@ class KeyBertExtractor(KeywordExtractor):
         self.model = SentenceTransformer('distilbert-base-nli-mean-tokens')
         # {word:total_freq}
         self.total_word_freq = defaultdict(int)
-    
-    def extract_keywords(self, top_n=5) -> None:
-        kws = defaultdict(int)
-        doc_kws = []
-        for doc in tqdm(self.docs):
-            try:
-                count = CountVectorizer(ngram_range=self.n_gram_range, stop_words=self.stop_words).fit([doc])
-            except:
-                continue
-            candidates = count.get_feature_names_out()
 
-            doc_embedding = self.model.encode([doc], show_progress_bar=False )
-            candidate_embeddings = self.model.encode(candidates, show_progress_bar=False )
+    def _extract_doc_keywords(self, doc)->str:
+        try:
+            count = CountVectorizer(ngram_range=self.n_gram_range, stop_words=self.stop_words).fit([doc])
+        except:
+            return ''
+        candidates = count.get_feature_names_out()
 
-            distances = cosine_similarity(doc_embedding, candidate_embeddings)
-            keywords = [candidates[index] for index in distances.argsort()[0][-top_n:]]
+        doc_embedding = self.model.encode([doc], show_progress_bar=False )
+        candidate_embeddings = self.model.encode(candidates, show_progress_bar=False )
 
-            for kw in keywords:
-                kws[kw] += 1
-
-            # # only count words in each doc keyword set
-            # for w in doc.split():
-            #     if w in kws.keys():
-            #         self.total_word_freq[w] += 1
-
-            doc_kws.append(set(keywords))
-        
-        #count total keyword freq
-        for doc in self.docs:
-            for w in doc.split():
-                if w in kws:
-                    self.total_word_freq[w] += 1
-
-        self.keywords = kws
-        self.kws_list = doc_kws
+        distances = cosine_similarity(doc_embedding, candidate_embeddings)
+        keywords = [candidates[index] for index in distances.argsort()[0][-self.top_n:]]       
+        doc_kwd = ''
+        for kw in keywords:
+            doc_kwd += kw
+        return doc_kwd
 
     def get_tf_idkf(self,):
         docs_len = len(self.docs)
@@ -166,19 +150,6 @@ class KeyBertExtractor(KeywordExtractor):
             tf = self.total_word_freq.get(kw, 0)
             kw_tfidkf_dict[kw] = tf * np.log(docs_len/kw_count)
         return kw_tfidkf_dict
-
-    # def get_keywords(self, duplicate_limit, num_keywords=512) -> set:
-    #     word_set = set(self.word_count_df.query('count>1').query(f'count<{duplicate_limit*len(self.docs)}').index.tolist())
-    #     filtered_kw = set()
-    #     count = 0
-    #     kw_idkf_dict = self.get_tf_idkf()
-    #     for w, s in sorted(kw_idkf_dict.items(), key=(lambda item: item[1]), reverse=True):
-    #         if w in word_set:
-    #             filtered_kw.add(w)
-    #             count += 1
-    #         if count == num_keywords:
-    #             break
-    #     return filtered_kw
 
 
 class KeyBertEmbeddingExtractor(KeywordExtractor):
