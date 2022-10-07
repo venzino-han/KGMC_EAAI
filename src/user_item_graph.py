@@ -90,7 +90,7 @@ class UserItemGraph():
 
         if user_item_cooc_edge_df is not None:
             print('add user-item cooc edge')
-            user_item_cooc_edge_df['v'] += self._num_user
+            user_item_cooc_edge_df['i'] += self._num_user
             self._add_additional_edge(user_item_cooc_edge_df, 8)
 
     def _add_additional_edge(self, cooc_edge_df, etype):
