@@ -66,7 +66,7 @@ def train_epoch(model, loss_fn, optimizer, loader, device, logger, log_interval,
     return epoch_loss / len(loader.dataset)
 
 
-NUM_WORKER = 8
+NUM_WORKER = 16
 def train(args:EasyDict, logger):
     th.manual_seed(0)
     np.random.seed(0)

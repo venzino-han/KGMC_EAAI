@@ -55,17 +55,17 @@ class UserItemGraph():
         sp_mat = sp.coo_matrix((labels,(src_nodes, dst_nodes)), shape=(num_nodes, num_nodes))
         self.graph =dgl.from_scipy(sp_mat=sp_mat, idtype=th.int32)
 
-        self.graph.ndata['node_id'] = th.tensor(list(range(num_nodes)), dtype=th.int16)
+        self.graph.ndata['node_id'] = th.tensor(list(range(num_nodes)), dtype=th.int32)
 
-        self.graph.edata['original_src_idx'] = th.tensor(src_nodes, dtype=th.int16)
-        self.graph.edata['original_dst_idx'] = th.tensor(dst_nodes, dtype=th.int16)
+        self.graph.edata['original_src_idx'] = th.tensor(src_nodes, dtype=th.int32)
+        self.graph.edata['original_dst_idx'] = th.tensor(dst_nodes, dtype=th.int32)
         self.graph.edata['label'] = th.tensor(labels, dtype=th.float32)
         self.graph.edata['etype'] = th.tensor(etypes, dtype=th.int8)
 
         #extract subgraph pair idx
         start, end = edge_idx_range
-        self.user_indices = th.tensor(u_idx[start:end], dtype=th.int16)
-        self.item_indices = th.tensor(i_idx[start:end], dtype=th.int16)
+        self.user_indices = th.tensor(u_idx[start:end], dtype=th.int32)
+        self.item_indices = th.tensor(i_idx[start:end], dtype=th.int32)
         self.labels = th.tensor(labels[start:end], dtype=th.float32)
 
         self.user_item_pairs = self.get_user_item_pairs()
@@ -103,8 +103,8 @@ class UserItemGraph():
         src, dst, etypes = us+vs, vs+us, [etype]*n*2
 
         edata={
-            'original_src_idx': th.tensor(np.array(src), dtype=th.int16),
-            'original_dst_idx': th.tensor(np.array(dst), dtype=th.int16),
+            'original_src_idx': th.tensor(np.array(src), dtype=th.int32),
+            'original_dst_idx': th.tensor(np.array(dst), dtype=th.int32),
             'etype': th.tensor(np.array(etypes), dtype=th.int8),
             'label': th.tensor(np.array([1.]*n*2), dtype=th.float32),
         }
