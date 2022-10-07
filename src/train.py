@@ -73,46 +73,33 @@ def train(args:EasyDict, logger):
     dgl.random.seed(0)
 
     data_path = f'data/{args.data_name}/{args.data_name}'
-    if args.keywords is not None and args.keywords.endswith('.npy'):
-        with open(f'data/{args.data_name}/{args.keywords}', 'rb') as f:
-            keyword_edge_matrix = np.load(f)
-    elif args.keywords is not None and args.keywords.endswith('.pkl'):
-        with open(f'data/{args.data_name}/{args.keywords}', 'rb') as f:
-            keyword_edge_matrix = pkl.load(f)
-    else:
-        keyword_edge_matrix = None
+    item_cooc_edge_df, user_cooc_edge_df, user_item_cooc_edge_df = None, None, None 
+    if args.item_cooc_edge_df is not None :
+        item_cooc_edge_df = pd.read_csv(f'data/{args.data_name}/{args.item_cooc_edge_df}_cooc.csv', index_col=0) 
+    if args.user_cooc_edge_df is not None :
+        user_cooc_edge_df = pd.read_csv(f'data/{args.data_name}/{args.user_cooc_edge_df}_cooc.csv', index_col=0) 
+    if args.user_item_cooc_edge_df is not None :
+        user_item_cooc_edge_df = pd.read_csv(f'data/{args.data_name}/{args.user_item_cooc_edge_df}_cooc.csv', index_col=0) 
+        
 
-    # for bert embedding test
-    if args.additional_feature is not None:
-        n_side_features = 768*2
-        with open(f'data/{args.data_name}/{args.additional_feature}', 'rb') as f:
-            additional_feature = np.load(f)
-    else:
-        additional_feature = None
-        n_side_features = 0
-
-    train_graph, valid_graph, test_graph = get_graphs(data_path=data_path)
+    train_graph, valid_graph, test_graph = get_graphs(data_path=data_path, 
+                                                      item_cooc_df=item_cooc_edge_df, 
+                                                      user_cooc_df=user_cooc_edge_df, 
+                                                      user_item_cooc_df=user_item_cooc_edge_df)
     
-    keyword_edge_k = args.keyword_edge_k
-    train_loader = get_dataloader(train_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 
-                                 keyword_edge_k=keyword_edge_k,
+    train_loader = get_dataloader(train_graph, 
                                  batch_size=args.batch_size, 
                                  num_workers=NUM_WORKER,
-                                 additional_feature=additional_feature,
                                  shuffle=True, 
                                  )
-    valid_loader = get_dataloader(valid_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 
-                                 keyword_edge_k=keyword_edge_k,
+    valid_loader = get_dataloader(valid_graph, 
                                  batch_size=args.batch_size, 
                                  num_workers=NUM_WORKER, 
-                                 additional_feature=additional_feature,
                                  shuffle=False,
                                  )
-    test_loader = get_dataloader(test_graph, keyword_edge_cooc_matrix=keyword_edge_matrix, 
+    test_loader = get_dataloader(test_graph, 
                                  batch_size=args.batch_size, 
-                                 keyword_edge_k=keyword_edge_k,
                                  num_workers=NUM_WORKER, 
-                                 additional_feature=additional_feature, 
                                  shuffle=False,
                                  )
 
@@ -126,17 +113,6 @@ def train(args:EasyDict, logger):
                      regression=True,
                      edge_dropout=args.edge_dropout,
                      ).to(args.device)
-
-    elif args.model_type == 'IGMC_BERT':
-        model = IGMC_BERT(in_feats=in_feats, 
-                        latent_dim=args.latent_dims,
-                        num_relations=args.num_relations, 
-                        num_bases=4, 
-                        regression=True,
-                        side_features=True,
-                        n_side_features=n_side_features,
-                        edge_dropout=args.edge_dropout,
-                        ).to(args.device)
 
     elif args.model_type == 'KGMC':
         model = KGMC(in_feats=in_feats, 

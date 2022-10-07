@@ -179,7 +179,7 @@ def bert_collate_data(data):
     return g, vectors, g_label
 
 
-def get_graphs(data_path, item_kw_df=None, user_kw_df=None):
+def get_graphs(data_path, item_cooc_df=None, user_cooc_df=None, user_item_cooc_df=None):
     train_df = pd.read_csv(f'{data_path}_train.csv')
     valid_df = pd.read_csv(f'{data_path}_valid.csv')
     test_df = pd.read_csv(f'{data_path}_test.csv')
@@ -191,22 +191,25 @@ def get_graphs(data_path, item_kw_df=None, user_kw_df=None):
     train_graph = UserItemGraph(label_col='rating',
                                 user_col='user_id',
                                 item_col='item_id',
-                                text_col='text_clean',
                                 df=train_df,
+                                user_cooc_edge_df=user_cooc_df, item_cooc_edge_df=item_cooc_df, 
+                                user_item_cooc_edge_df=user_item_cooc_df,
                                 edge_idx_range=(0, len(train_df)))
 
     valid_graph = UserItemGraph(label_col='rating',
                                 user_col='user_id',
                                 item_col='item_id',
-                                text_col='text_clean',
                                 df=valid_df,
+                                user_cooc_edge_df=user_cooc_df, item_cooc_edge_df=item_cooc_df, 
+                                user_item_cooc_edge_df=user_item_cooc_df,
                                 edge_idx_range=(len(train_df), len(valid_df)))
 
     test_graph = UserItemGraph(label_col='rating',
                                user_col='user_id',
                                item_col='item_id',
-                               text_col='text_clean',
                                df=test_df,
+                               user_cooc_edge_df=user_cooc_df, item_cooc_edge_df=item_cooc_df, 
+                               user_item_cooc_edge_df=user_item_cooc_df,
                                edge_idx_range=(len(valid_df), len(test_df)))
 
     return train_graph, valid_graph, test_graph

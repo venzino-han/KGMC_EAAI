@@ -12,6 +12,10 @@ from scipy.spatial.distance import pdist
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+
 """set of parts of speech that constitutes a keyphrase
   Anette Hulth. 2003. Improved Automatic Keyword
   Extraction Given More Linguistic Knowledge. In
@@ -38,7 +42,7 @@ iso_639_1 = {'en': 'english',
              'es': 'spanish',
              'sv': 'swedish'}
 
-logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s', level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 

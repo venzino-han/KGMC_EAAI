@@ -82,16 +82,21 @@ if __name__=='__main__':
         'keybert' : KeyBertExtractor,
     }
 
-    for keyword_extraction_method in ['text_rank','topic_rank']:
+    for keyword_extraction_method in [
+        'tfidf',
+        'keybert',
+        # 'text_rank',
+        # 'topic_rank'
+    ]:
         for data_name in [
                         'movie',
-                        'yelp',
-                        'grocery',
-                        'epinions',
-                        'games', 
-                        'music', 
-                        'office', 
-                        'sports',
+                        # 'yelp',
+                        # 'grocery',
+                        # 'epinions',
+                        # 'games', 
+                        # 'music', 
+                        # 'office', 
+                        # 'sports',
                         ]:
             train_df = pd.read_csv(f'data/{data_name}/{data_name}_train.csv')
             valid_df = pd.read_csv(f'data/{data_name}/{data_name}_valid.csv')

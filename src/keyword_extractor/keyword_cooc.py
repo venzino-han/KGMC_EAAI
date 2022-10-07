@@ -88,13 +88,15 @@ if __name__=='__main__':
                 # 'topic_rank',
         ]:
         for data_name in [
+                        'epinions',
+                        'grocery',
+
+                        'movie', 
                         'yelp',
-                        # 'epinions',
-                        # 'grocery',
-                        # 'games', 
-                        # 'music', 
-                        # 'office', 
-                        # 'sports',
+                        'games', 
+                        'music', 
+                        'office', 
+                        'sports',
                         ]:
             
             item_df = pd.read_csv(f'data/{data_name}/item_{keyword_extraction_method}_keywords.csv')
@@ -103,17 +105,20 @@ if __name__=='__main__':
             item_dict = get_id_keyword_dict(item_df)
             cooc_df = get_cooc_pair_df(item_dict)
             cooc_df.to_csv(f'data/{data_name}/item_{keyword_extraction_method}_cooc.csv')
+            print('item : ', data_name, keyword_extraction_method,len(cooc_df))
             del cooc_df
             gc.collect()
             print('item', time.time())
 
             user_dict = get_id_keyword_dict(user_df)
             cooc_df = get_cooc_pair_df(user_dict)
+            print('user : ', data_name, keyword_extraction_method,len(cooc_df))
             cooc_df.to_csv(f'data/{data_name}/user_{keyword_extraction_method}_cooc.csv')
             del cooc_df
             gc.collect()
             print('user', time.time())
 
             cooc_df = get_uv_cooc_pair_df(user_dict, item_dict)
+            print('user-item : ', data_name, keyword_extraction_method,len(cooc_df))
             print('user-item', time.time())
             cooc_df.to_csv(f'data/{data_name}/user_item_{keyword_extraction_method}_cooc.csv')

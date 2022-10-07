@@ -18,77 +18,18 @@ def one_hot(idx, length):
 #######################
 # Build graph
 #######################
-class UserItemGraphData():
-    """
-    Build user-item graph data for training 
-    Bulid edge connection with df
-    only user user-item pairs in range when extracting subgraph
-    """
-    def __init__(self, label_col:str, user_col:str, item_col:str, text_col:str,
-                 df:pd.DataFrame, edge_idx_range:tuple,
-                 ):
-        df = df.copy()
-        df['etype'] = df[label_col]
-        self._num_user = max(df[user_col].unique()) + 1
-        self._num_item = max(df[item_col].unique()) + 1
-        self._num_label = len(df[label_col].unique())
-        
-        df[item_col] += self._num_user
-        self.u_idx_arr, self.i_idx_arr, = df[user_col].to_numpy(), df[item_col].to_numpy(), 
-        self.etypes = df[label_col].to_numpy()
-        # self.etypes_vect = np.array([ one_hot(t,8) for t in df[label_col] ])
-        # self.labels = (df[label_col].to_numpy() - 1)/4
-        self.num_nodes = self._num_user + self._num_item
-
-        print('pairs ', len(df))
-        print('nodes ', self.num_nodes)
-
-        # self.ndata = {}
-        # self.edata = {}
-        # self.ndata['node_id'] = th.tensor(list(range(self.num_nodes)), dtype=th.int32)
-        # self.edata['label'] = th.tensor(self.labels, dtype=th.float32)
-        # self.edata['etype'] = th.tensor(self.etypes, dtype=th.int32)
-        # self.edata['etype_vect'] = th.tensor(self.etypes_vect, dtype=th.float32)
-        
-        #extract subgraph pair idx
-        start, end = edge_idx_range
-        self.target_user_indices = th.tensor(self.u_idx_arr[start:end], dtype=th.int32)
-        self.target_item_indices = th.tensor(self.i_idx_arr[start:end], dtype=th.int32)
-        self.target_labels = th.tensor(self.labels[start:end], dtype=th.float32)
-        self.target_user_item_pairs = self._get_user_item_pairs()
-
-        self.nid_neghibor_dict = defaultdict(list)
-        self.nid_neghibor_rating_dict = defaultdict(list)
-        for u, i, r in zip(*(self.u_idx_arr, self.i_idx_arr, self.etypes)):
-            self.nid_neghibor_dict[i].append(u)
-            self.nid_neghibor_dict[u].append(i)
-            self.nid_neghibor_rating_dict[i].append(r)
-            self.nid_neghibor_rating_dict[u].append(r)
-
-    def _get_user_item_pairs(self):
-        pairs = []
-        for u, i in zip(self.user_indices, self.item_indices):
-            pairs.append((u,i))
-        return pairs
-
-
-#######################
-# Build graph
-#######################
 class UserItemGraph():
     """
     Build user-item graph for training 
     Bulid Homogeneous graph with df
     only user user-item pairs in range when extracting subgraph
     """
-    def __init__(self, label_col:str, user_col:str, item_col:str, text_col:str,
+    def __init__(self, label_col:str, user_col:str, item_col:str,
                  df:pd.DataFrame, edge_idx_range:tuple,
+                 user_cooc_edge_df=None, item_cooc_edge_df=None, user_item_cooc_edge_df=None
                  ):
         df = df.copy()
         # df['etype'] = df[label_col]
-        # self.user_col = user_col
-        # self.item_col = item_col
-        # self.text_col = text_col
 
         self._num_user = max(df[user_col].unique()) + 1
         self._num_item = max(df[item_col].unique()) + 1
@@ -97,7 +38,6 @@ class UserItemGraph():
         df[item_col] += self._num_user
         u_idx, i_idx, = df[user_col].to_numpy(), df[item_col].to_numpy(), 
         etypes = df[label_col].to_numpy()
-        etypes_vect = np.array([ one_hot(t,8) for t in df[label_col] ])
         labels = (df[label_col].to_numpy() - 1)/4
 
         # use whole data to build main graph
@@ -107,30 +47,25 @@ class UserItemGraph():
         dst_nodes = np.concatenate((i_idx, u_idx))
         labels = np.concatenate((labels, labels))
         etypes = np.concatenate((etypes, etypes))
-        etypes_vect = np.concatenate((etypes_vect, etypes_vect))
-        # ts = np.concatenate((ts, ts))
 
-        print('df len ', len(df))
+        print('edges ', len(df))
         print('nodes ', num_nodes)
-        print('pairs ', src_nodes.shape, dst_nodes.shape )
         print('max id ', max(src_nodes), max(dst_nodes) )
 
         sp_mat = sp.coo_matrix((labels,(src_nodes, dst_nodes)), shape=(num_nodes, num_nodes))
         self.graph =dgl.from_scipy(sp_mat=sp_mat, idtype=th.int32)
 
-        self.graph.ndata['node_id'] = th.tensor(list(range(num_nodes)), dtype=th.int32)
+        self.graph.ndata['node_id'] = th.tensor(list(range(num_nodes)), dtype=th.int16)
 
-        self.graph.edata['original_src_idx'] = th.tensor(src_nodes, dtype=th.int32)
-        self.graph.edata['original_dst_idx'] = th.tensor(dst_nodes, dtype=th.int32)
+        self.graph.edata['original_src_idx'] = th.tensor(src_nodes, dtype=th.int16)
+        self.graph.edata['original_dst_idx'] = th.tensor(dst_nodes, dtype=th.int16)
         self.graph.edata['label'] = th.tensor(labels, dtype=th.float32)
-        self.graph.edata['etype'] = th.tensor(etypes, dtype=th.int32)
-        self.graph.edata['etype_vect'] = th.tensor(etypes_vect, dtype=th.float32)
-        # self.graph.edata['ts'] = th.tensor(ts, dtype=th.int32)
+        self.graph.edata['etype'] = th.tensor(etypes, dtype=th.int8)
 
         #extract subgraph pair idx
         start, end = edge_idx_range
-        self.user_indices = th.tensor(u_idx[start:end], dtype=th.int32)
-        self.item_indices = th.tensor(i_idx[start:end], dtype=th.int32)
+        self.user_indices = th.tensor(u_idx[start:end], dtype=th.int16)
+        self.item_indices = th.tensor(i_idx[start:end], dtype=th.int16)
         self.labels = th.tensor(labels[start:end], dtype=th.float32)
 
         self.user_item_pairs = self.get_user_item_pairs()
@@ -142,6 +77,39 @@ class UserItemGraph():
         self.nid_neghibor_dict = dict()
         for k, v in nid_neghibor_dict.items():
             self.nid_neghibor_dict[k] = th.tensor(v)
+
+        if user_cooc_edge_df is not None:
+            print('add user cooc edge')
+            self._add_additional_edge(user_cooc_edge_df, 6)
+
+        if item_cooc_edge_df is not None:
+            print('add item cooc edge')
+            item_cooc_edge_df['u'] += self._num_user
+            item_cooc_edge_df['v'] += self._num_user
+            self._add_additional_edge(item_cooc_edge_df, 7)
+
+        if user_item_cooc_edge_df is not None:
+            print('add user-item cooc edge')
+            user_item_cooc_edge_df['v'] += self._num_user
+            self._add_additional_edge(user_item_cooc_edge_df, 8)
+
+    def _add_additional_edge(self, cooc_edge_df, etype):
+        # n = subg.number_of_edges()//4
+        cols = list(cooc_edge_df.columns)
+        u_col, v_col = cols[-2], cols[-1] 
+        print(u_col, v_col)
+        n = len(cooc_edge_df)
+        us, vs = cooc_edge_df[u_col].to_list(), cooc_edge_df[v_col].to_list()
+        src, dst, etypes = us+vs, vs+us, [etype]*n*2
+
+        edata={
+            'original_src_idx': th.tensor(np.array(src), dtype=th.int16),
+            'original_dst_idx': th.tensor(np.array(dst), dtype=th.int16),
+            'etype': th.tensor(np.array(etypes), dtype=th.int8),
+            'label': th.tensor(np.array([1.]*n*2), dtype=th.float32),
+        }
+
+        self.graph.add_edges(src, dst, data=edata)
 
     def get_user_item_pairs(self):
         pairs = []

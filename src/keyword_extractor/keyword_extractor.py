@@ -93,14 +93,15 @@ class TFIDFExtractor(KeywordExtractor):
         keywords=self._extract_topn_from_vector(self.feature_names, sorted_items, self.top_n)
         doc_kwd = ''
         for kw, s in keywords.items():
-            doc_kwd += kw
+            doc_kwd += kw + ' '
         return doc_kwd
 
         
 class TopicRankExtractor(KeywordExtractor):
     def _extract_doc_keywords(self, doc)->str:
         tr = TopicRank(doc)
-        keywords=tr.get_top_n(n=self.top_n)       
+        try: keywords=tr.get_top_n(n=self.top_n)       
+        except: keywords={}
         doc_kwd = ''
         for kw, s in keywords.items():
             doc_kwd += kw
@@ -140,7 +141,7 @@ class KeyBertExtractor(KeywordExtractor):
         keywords = [candidates[index] for index in distances.argsort()[0][-self.top_n:]]       
         doc_kwd = ''
         for kw in keywords:
-            doc_kwd += kw
+            doc_kwd += kw + ' '
         return doc_kwd
 
     def get_tf_idkf(self,):

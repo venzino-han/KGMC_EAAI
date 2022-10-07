@@ -59,8 +59,9 @@ def get_args_from_yaml(yaml_path):
 
             'dataset': data_cfg.get('name'),
             'keywords': data_cfg.get('keywords'),
-            'keyword_edge_k': data_cfg.get('keyword_edge_k'),
-            'additional_feature': data_cfg.get('additional_feature'),
+            'item_cooc_edge_df': data_cfg.get('item_cooc_edge_df'),
+            'user_cooc_edge_df': data_cfg.get('user_cooc_edge_df'),
+            'user_item_cooc_edge_df': data_cfg.get('user_item_cooc_edge_df'),
             
             # model configs
             'model_type': model_cfg['type'],
