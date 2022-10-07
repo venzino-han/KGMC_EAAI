@@ -44,5 +44,13 @@ files:
   # - ./train_configs/igmc_yelp.yaml
   # - ./train_configs/igmc_epinions.yaml
   # - ./train_configs/kgmc_epinions_keybert_homo.yaml
-  - ./train_configs/kgmc_epinions_keybert_hetero.yaml
-  - ./train_configs/kgmc_epinions_keybert.yaml
+  # - ./train_configs/kgmc_epinions_keybert_hetero.yaml
+  # - ./train_configs/kgmc_epinions_keybert.yaml
+
+  # - ./train_configs/kgmc_grocery_keybert_homo.yaml
+  # - ./train_configs/kgmc_grocery_keybert_hetero.yaml
+  # - ./train_configs/kgmc_grocery_keybert.yaml
+
+  - ./train_configs/kgmc_yelp_keybert_homo.yaml
+  - ./train_configs/kgmc_yelp_keybert_hetero.yaml
+  - ./train_configs/kgmc_yelp_keybert.yaml
