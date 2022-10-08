@@ -150,15 +150,16 @@ def train(args:EasyDict, logger):
     
         train_loss = train_epoch(model, loss_fn, optimizer, train_loader, 
                                  args.device, logger, args.log_interval, train_model=args.model_type)
-        val_rmse = eval_func(model, valid_loader, args.device)
+        # val_rmse = eval_func(model, valid_loader, args.device)
         test_rmse = eval_func(model, test_loader, args.device)
         eval_info = {
+            'dataset': args.data_name,
             'epoch': epoch_idx,
             'train_loss': train_loss,
-            'val_rmse' : val_rmse,
+            'val_rmse' : -1,
             'test_rmse': test_rmse,
         }
-        logger.info('=== Epoch {}, train loss {:.6f}, val rmse {:.6f}, test rmse {:.6f} ==='.format(*eval_info.values()))
+        logger.info('=== {} Epoch {}, train loss {:.6f}, val rmse {:.6f}, test rmse {:.6f} ==='.format(*eval_info.values()))
 
         if epoch_idx % args.lr_decay_step == 0:
             for param in optimizer.param_groups:
