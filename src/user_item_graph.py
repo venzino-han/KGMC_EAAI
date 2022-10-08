@@ -78,21 +78,25 @@ class UserItemGraph():
         for k, v in nid_neghibor_dict.items():
             self.nid_neghibor_dict[k] = th.tensor(v)
 
+        print('original edges : ', self.graph.number_of_edges())
         if user_cooc_edge_df is not None:
             print('add user cooc edge')
             self._add_additional_edge(user_cooc_edge_df, 6)
+            print('add user edges : ', self.graph.number_of_edges())
 
         if item_cooc_edge_df is not None:
             print('add item cooc edge')
             item_cooc_edge_df['u'] += self._num_user
             item_cooc_edge_df['v'] += self._num_user
             self._add_additional_edge(item_cooc_edge_df, 7)
+            print('add item edges : ', self.graph.number_of_edges())
 
         if user_item_cooc_edge_df is not None:
             print('add user-item cooc edge')
             user_item_cooc_edge_df['i'] += self._num_user
             self._add_additional_edge(user_item_cooc_edge_df, 8)
-
+            print('add user-item edges : ', self.graph.number_of_edges())
+            
     def _add_additional_edge(self, cooc_edge_df, etype):
         # n = subg.number_of_edges()//4
         cols = list(cooc_edge_df.columns)
