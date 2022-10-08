@@ -1,4 +1,5 @@
 import math, copy
+import winsound as ws
 
 import dgl
 import pandas as pd
@@ -212,6 +213,10 @@ def main():
             mean_std_dict[dataset] = [f'{np.mean(results):.4f} ± {np.std(results):.5f}']
         mean_std_df = pd.DataFrame(mean_std_dict)
         mean_std_df.to_csv(f'./results/{args.key}_{date_time}.csv')
+    ws.Beep(2500, 1000)
+    ws.Beep(2500, 500)
+    ws.Beep(2500, 1000)
+    ws.Beep(2500, 500)
         
 if __name__ == '__main__':
     main()
