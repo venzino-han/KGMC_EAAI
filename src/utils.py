@@ -58,6 +58,7 @@ def get_args_from_yaml(yaml_path):
             'key': cfgs['key'],
 
             'dataset': data_cfg.get('name'),
+            'datasets': data_cfg.get('datasets'),
             'keywords': data_cfg.get('keywords'),
             'item_cooc_edge_df': data_cfg.get('item_cooc_edge_df'),
             'user_cooc_edge_df': data_cfg.get('user_cooc_edge_df'),

@@ -192,20 +192,24 @@ def main():
         for k,v in args.items():
             logger.info(f'{k}: {v}')
 
-        test_results = defaultdict(list)
-        best_lr = None
-        # for data_name in args.dataset:
-        sub_args = args
-        sub_args['data_name'] = args.dataset
-        best_rmse_list = []
-        for lr in args.train_lrs:
-            sub_args['train_lr'] = lr
-            best_rmse = train(sub_args, logger=logger)
-            test_results[args.dataset].append(best_rmse)
-            best_rmse_list.append(best_rmse)
+        for data_name in args.datasets:
+            sub_args = args
+            sub_args['data_name'] = data_name
+            logger.info(f"DATASET : {sub_args['data_name']}")
+
+            test_results = defaultdict(list)
+            best_lr = None
+            sub_args = args
+            # sub_args['data_name'] = args.dataset
+            best_rmse_list = []
+            for lr in args.train_lrs:
+                sub_args['train_lr'] = lr
+                best_rmse = train(sub_args, logger=logger)
+                test_results[sub_args['data_name']].append(best_rmse)
+                best_rmse_list.append(best_rmse)
         
-        logger.info(f"**********The final best testing RMSE is {min(best_rmse_list):.6f} at lr {best_lr}********")
-        logger.info(f"**********The mean testing RMSE is {np.mean(best_rmse_list):.6f}, {np.std(best_rmse_list)} ********")
+            logger.info(f"**********The final best testing RMSE is {min(best_rmse_list):.6f} at lr {best_lr}********")
+            logger.info(f"**********The mean testing RMSE is {np.mean(best_rmse_list):.6f}, {np.std(best_rmse_list)} ********")
     
         mean_std_dict = dict()
         for dataset, results in test_results.items():
