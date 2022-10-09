@@ -18,6 +18,19 @@ def one_hot(idx, length):
 #######################
 # Subgraph Extraction 
 #######################
+def additional_edges_from_target_0(edges, u_node, i_node):
+    filtered_edges = (edges.data['original_src_idx']!=u_node).squeeze(0)
+    return filtered_edges
+def additional_edges_from_target_1(edges, u_node, i_node):
+    filtered_edges = (edges.data['original_src_idx']!=i_node).squeeze(0)
+    return filtered_edges
+def additional_edges_from_target_2(edges, u_node, i_node):
+    filtered_edges = (edges.data['original_dst_idx']!=u_node).squeeze(0)
+    return filtered_edges
+def additional_edges_from_target_3(edges, u_node, i_node):
+    filtered_edges = (edges.data['original_dst_idx']!=i_node).squeeze(0)
+    return filtered_edges
+
 def get_subgraph_label(graph:dgl.graph,
                        u_node_idx:th.tensor, i_node_idx:th.tensor,
                        u_neighbors:th.tensor, i_neighbors:th.tensor,
@@ -26,12 +39,30 @@ def get_subgraph_label(graph:dgl.graph,
     nodes = th.cat([u_node_idx, i_node_idx, u_neighbors, i_neighbors], dim=0,) 
     nodes = nodes.type(th.int32)
     subgraph = dgl.node_subgraph(graph, nodes, store_ids=True) 
+    
+    remove_edge_ids_0 = subgraph.filter_edges(
+        lambda edges: additional_edges_from_target_0(edges, u_node_idx, i_node_idx))
+    remove_edge_ids_1 = subgraph.filter_edges(
+        lambda edges: additional_edges_from_target_1(edges, u_node_idx, i_node_idx))
+    remove_edge_ids_2 = subgraph.filter_edges(
+        lambda edges: additional_edges_from_target_2(edges, u_node_idx, i_node_idx))
+    remove_edge_ids_3 = subgraph.filter_edges(
+        lambda edges: additional_edges_from_target_3(edges, u_node_idx, i_node_idx))
+
+    a = np.intersect1d(remove_edge_ids_0, remove_edge_ids_1)
+    b = np.intersect1d(remove_edge_ids_2, remove_edge_ids_3)
+    c = np.intersect1d(a, b)
+    remove_edge_ids = th.tensor(c, dtype=th.int32)
+
+    subgraph.remove_edges(remove_edge_ids)
+    
     node_labels = [0,1] + [2]*len(u_neighbors) + [3]*len(i_neighbors)
     subgraph.ndata['nlabel'] = one_hot(node_labels, 4)
     subgraph.ndata['x'] = subgraph.ndata['nlabel']
 
     # set edge mask to zero as to remove links between target nodes in training process
     subgraph.edata['edge_mask'] = th.ones(subgraph.number_of_edges(), dtype=th.float32)
+    
     target_edges = subgraph.edge_ids([0, 1], [1, 0], return_uv=False)
     subgraph.remove_edges(target_edges)
     subgraph = dgl.add_self_loop(subgraph)
