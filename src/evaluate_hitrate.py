@@ -33,7 +33,7 @@ def evaluate_hitrate(df, predicted_score, k):
         sub_df = df.query(f'user_id=={uid}')
         sub_df.sort_values('score', ascending=False, inplace=True)
         sub_df = sub_df[:k]
-        hit_count += sum(sub_df.rating)
+        hit_count += sum(sub_df.rating) # Sum is same as count hit
     hr = hit_count/len(uids)
     return hr
 
