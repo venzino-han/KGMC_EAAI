@@ -52,7 +52,21 @@ def evaluate_ndcg(df, predicted_score, k):
             pass
     ndcg = ndcg/len(uids)
     return ndcg
-
+def evaluate_mrr(df, predicted_score, k):
+    df['score'] = predicted_score
+    uids = set(df.user_id)
+    ndcg = 0
+    for uid in uids:
+        sub_df = df.query(f'user_id=={uid}')
+        sub_df.sort_values('score', ascending=False, inplace=True)
+        sub_df = sub_df[:k].reset_index()
+        try:
+            position = sub_df.query('rating==1.').index[0]
+            mrr += 1/(position+1) # Make position start to 1
+        except:
+            pass
+    mrr = mrr/len(uids)
+    return mrr
 K = 10
 NUM_WORKER = 16
 
